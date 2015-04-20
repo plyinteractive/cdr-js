@@ -16,20 +16,13 @@
   "license": "MIT",
   "ignore": [
     "source",
-    "spec",
     ".bowerrc",
     ".gitignore",
-    ".jshintignore",
-    ".jshintrc",
     "bower.json",
-    "gruntfile.js",
     "package.json",
     "README.md",
-    "**/.*",
     "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "bower_components"
   ],
   "dependencies": {
     "jquery": "~2.1.3"
