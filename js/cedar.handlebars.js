@@ -61,7 +61,17 @@ Handlebars.registerHelper('cedar', function(options) {
     // If rendered element exists than insert the content
     var renderedEl = document.getElementById(outputEl.id);
     if (renderedEl !== null) {
-      renderedEl.innerHTML = output;
+      var parentEl = renderedEl.parentNode;
+      var tempEl = document.createElement("div");
+      tempEl.innerHTML = output;
+
+      // Insert content node by node and then remove the existing element
+      var nodeList = tempEl.childNodes;
+      var nodeListLength = nodeList.length;
+      for(var i = 0; i < nodeListLength; i++) {
+        parentEl.insertBefore(nodeList[0], renderedEl);
+      }
+      parentEl.removeChild(renderedEl);
     }
   });
 
