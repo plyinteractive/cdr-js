@@ -33,6 +33,24 @@ Handlebars.registerHelper('cedar', function(options) {
     } else {
       return false;
     }
+  };
+
+  var replaceElement = function(id, content) {
+    // If rendered element exists than insert the content
+    var renderedEl = document.getElementById(id);
+    if (renderedEl !== null) {
+      var parentEl = renderedEl.parentNode;
+      var tempEl = document.createElement("div");
+      tempEl.innerHTML = content;
+
+      // Insert content node by node and then remove the existing element
+      var nodeList = tempEl.childNodes;
+      var nodeListLength = nodeList.length;
+      for(var i = 0; i < nodeListLength; i++) {
+        parentEl.insertBefore(nodeList[0], renderedEl);
+      }
+      parentEl.removeChild(renderedEl);
+    }
   }
 
   var tagName = options.hash.tagName || "span";
@@ -58,21 +76,7 @@ Handlebars.registerHelper('cedar', function(options) {
       output = contentEntry.getContent();
     }
 
-    // If rendered element exists than insert the content
-    var renderedEl = document.getElementById(outputEl.id);
-    if (renderedEl !== null) {
-      var parentEl = renderedEl.parentNode;
-      var tempEl = document.createElement("div");
-      tempEl.innerHTML = output;
-
-      // Insert content node by node and then remove the existing element
-      var nodeList = tempEl.childNodes;
-      var nodeListLength = nodeList.length;
-      for(var i = 0; i < nodeListLength; i++) {
-        parentEl.insertBefore(nodeList[0], renderedEl);
-      }
-      parentEl.removeChild(renderedEl);
-    }
+    replaceElement(outputEl.id, output);
   });
 
   return new Handlebars.SafeString(output || outputEl.outerHTML);
