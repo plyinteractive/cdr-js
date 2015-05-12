@@ -85,10 +85,6 @@ Cedar.Application = function(options) {
     this.showGlobalActions();
   }
 
-  if (Cedar.config.fetch) {
-    Cedar.store.fetched = Cedar.store.fetch();
-  }
-
   Cedar.initialized = true;
 
   this.initializeHTML()
@@ -203,6 +199,14 @@ Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
 Cedar.Store = function() {
   this.loaded = false;
 
+  this.cache = localStorage;
+
+  this.checkVersion = this.checkVersion().then(function() {
+    if (Cedar.config.fetch) {
+      Cedar.store.fetched = Cedar.store.refresh();
+    }
+  });
+
   try {
     return 'localStorage' in window && window['localStorage'] !== null;
   } catch (e) {
@@ -218,80 +222,68 @@ Cedar.Store = function() {
 Cedar.Store.prototype.put = function ( key, item ) {
   localStorage[key] = JSON.stringify(item);
 }
-/**
- * get a single item based on id (key)
- * if the item isn't in the local store, then get it from the server
- *
- * @param <Cedar> 'object'
- * @param <string> 'key'
- */
-Cedar.Store.prototype.get = function ( object, key ) {
-  if ( object.apiGet() === null ) {
-    throw 'Cedar Error: must provide api "get" path';
-  }
 
-  if (Cedar.store.loaded || (object.hasLocalContent() && !Cedar.config.wait)) {
-    Cedar.debug("loaded in get: " + Cedar.store.loaded);
-    Cedar.debug('get from cache: ' + key);
-    return $.Deferred().resolve(localStorage[key]);
+// Return local content immediately if possible. Otherwise return deferred remote content
+Cedar.Store.prototype.get = function(key) {
+  var cachedDeferred = this.cachedDeferred(key);
+  var remoteDeferred = this.remoteDeferred(key);
 
+  if (Cedar.config.wait || !this.cache[key]) {
+    Cedar.debug('checking remote: ' + key);
+    return remoteDeferred;
   } else {
-    Cedar.debug("loaded: " + Cedar.store.loaded);
-    return $.getJSON(Cedar.config.api + object.apiGet() + key, function(json) {
-      Cedar.debug('get from server: ' + key);
-      Cedar.store.put(key, json);
-    });
+    Cedar.debug('get from cache: ' + key);
+    return cachedDeferred;
   }
 }
-/**
- * fetch records from the server if necessary
- *
- * @param options <Array>
- *  - filter:<string> return only objects which match object IDs containing the string
- *  - path:<string> provide an api path other than the default (content entry query)
- *  - clear:<bool> clear local storage first
- */
-Cedar.Store.prototype.fetch = function ( options ) {
-  var apiPath = '/queries/contententries/';
-  var queryParams = {};
 
-  if ( typeof options !== 'undefined' && typeof options.path !== 'undefined' ) {
-    apiPath = options.path;
-  }
-  if ( typeof options !== 'undefined' && typeof options.filter !== 'undefined' ) {
-    queryParams['guidfilter'] = options.filter;
-  }
-  if ( typeof options !== 'undefined' && typeof options.clear !== 'undefined' && options.clear) {
-    this.clear();
-  }
+// Deferred object containing local content
+Cedar.Store.prototype.cachedDeferred = function(key) {
+  return $.Deferred().resolve(this.cache[key]);
+}
 
-  return $.when(Cedar.store.checkData()).then( function(response) {
+// Refresh local storage if needed and then return content
+Cedar.Store.prototype.remoteDeferred = function(key) {
+  return this.refresh().then(function() {
+    return this.cachedDeferred(key);
+  }.bind(this));
+}
 
-    Cedar.debug("fetch data check complete");
-
-    if (Cedar.store.loaded) {
-
-      Cedar.debug("loaded: " + Cedar.store.loaded);
-      return $.Deferred().resolve({});
-
+// Check content version and update if needed
+Cedar.Store.prototype.refresh = function() {
+  return this.checkVersion.then(function() {
+    if (this.loaded) {
+      return $.Deferred().resolve();
     } else {
-
-      Cedar.debug("loaded: " + Cedar.store.loaded);
-      return $.getJSON(Cedar.config.api + apiPath, queryParams ).done( function(json) {
-        $.each(json, function (key, val) {
-          if ( typeof val.id !== 'undefined' && typeof val.settings.content !== 'undefined') {
-            Cedar.store.put(val.id, val);
-            Cedar.debug("storing: " + val.id);
-          }
-        });
-        Cedar.debug("setting loaded to true");
-        Cedar.store.loaded = true;
-        Cedar.$.trigger("content:loaded");
-      });
+      return this.getAll();
     }
-
-  });
+  }.bind(this));
 }
+
+// Get all content objects from server and save to local storage
+Cedar.Store.prototype.getAll = function(options) {
+  var defaultOptions = {
+    path: '/queries/contententries/'
+  };
+  options = $.extend({}, defaultOptions, options);
+  var defaultParams = {};
+  var params = $.extend({}, defaultParams, {
+    guidfilter: options.filter
+  });
+
+  return $.getJSON(Cedar.config.api + options.path, params).then(function(response) {
+    $.each(response, function (index, value) {
+      if ("id" in value && "content" in value.settings) {
+        this.put(value.id, value);
+        Cedar.debug("storing: " + value.id);
+      }
+    }.bind(this));
+    Cedar.debug("local storage was updated");
+    this.loaded = true;
+    Cedar.$.trigger("content:loaded");
+  }.bind(this));
+}
+
 /**
  * clear the local storage or remove a single locally store item by key
  *
@@ -327,8 +319,8 @@ Cedar.Store.prototype.getVersion = function() {
  *
  * @return <Deferred>
  */
-Cedar.Store.prototype.checkData = function() {
-  Cedar.debug("checking version #" + Cedar.store.getVersion());
+Cedar.Store.prototype.checkVersion = function() {
+  Cedar.debug("checking version #" + this.getVersion());
   return $.when($.getJSON(Cedar.config.api + '/queries/status'))
 
   .then( function(response) {
@@ -403,11 +395,11 @@ Cedar.ContentEntry.prototype.hasLocalContent = function() {
  * @param <json>
  */
 Cedar.ContentEntry.prototype.setContent = function(data) {
-  if (typeof data === 'undefined') return;
   if (typeof data === 'string') {
     data = JSON.parse(data);
   }
-  if (data.code == 'UNKNOWN_ID'){
+
+  if (!data || data.code == 'UNKNOWN_ID'){
     this.content = '';
   } else if (typeof data.settings.content !== 'undefined') {
     this.content = data.settings.content;
@@ -469,7 +461,7 @@ Cedar.ContentEntry.prototype.fill = function(element) {
  * check store for this object's content
  */
 Cedar.ContentEntry.prototype.retrieve = function() {
- return Cedar.store.get(this, this.cedarId).then(function(response) {
+ return Cedar.store.get(this.cedarId).then(function(response) {
    this.setContent(response);
    return this;
  }.bind(this));
