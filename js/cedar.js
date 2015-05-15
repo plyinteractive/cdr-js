@@ -1,15 +1,11 @@
 /**
  * Global object for settings and storage
  */
-var Cedar = {
+window.Cedar = {
   initialized: false,
   store: null,
   auth: null,
-  config: {
-    api: '',
-    server: '',
-    debug: false
-  }
+  config: {}
 };
 
 
@@ -21,7 +17,7 @@ var Cedar = {
 */
 Cedar.Init = function(options) {
   return new Cedar.Application(options);
-}
+};
 
 /**
  * Global function to display message to console if Cedar.debug = true
@@ -30,9 +26,9 @@ Cedar.Init = function(options) {
  */
 Cedar.debug = function(msg) {
   if (Cedar.config.debug) {
-    console.log(msg);
+    window.console.log(msg);
   }
-}
+};
 
 /**
 * Cedar.Application
@@ -59,7 +55,7 @@ Cedar.Application = function(options) {
 
   this.options = $.extend({}, defaults, options);
 
-  if ( typeof this.options.server === 'undefined' ) {
+  if (this.options.server === undefined) {
     throw 'Cedar Error: must provide "server" value on Init()';
   }
 
@@ -69,8 +65,8 @@ Cedar.Application = function(options) {
   Cedar.config.wait = this.options.wait;
   Cedar.config.fetch = this.options.fetch;
 
-  if (typeof Cedar.$ === "undefined") {
-    Cedar.$ = jQuery({});
+  if (Cedar.events === undefined) {
+    Cedar.events = jQuery({});
   }
 
   if ( Cedar.store === null ) {
@@ -87,8 +83,8 @@ Cedar.Application = function(options) {
 
   Cedar.initialized = true;
 
-  this.initializeHTML()
-}
+  this.initializeHTML();
+};
 
 Cedar.Application.prototype.initializeHTML = function() {
   $('[data-cedar-id]').each(function(){
@@ -98,12 +94,12 @@ Cedar.Application.prototype.initializeHTML = function() {
       cedarId: $this.data("cedarId")
     }));
 
-    Cedar.$.on("content:loaded", function() {
+    Cedar.events.on("content:loaded", function() {
       $this.data("cedarObject").render();
     }.bind(this));
   });
-  Cedar.$.trigger("content:loaded");
-}
+  Cedar.events.trigger("content:loaded");
+};
 
 Cedar.Application.prototype.getProtocol = function() {
   if (this.options.forceHttps || window.location.protocol === 'https:') {
@@ -111,7 +107,7 @@ Cedar.Application.prototype.getProtocol = function() {
   } else {
     return 'http://';
   }
-}
+};
 
 Cedar.Application.prototype.showGlobalActions = function() {
   $(document).ready(function() {
@@ -128,7 +124,7 @@ Cedar.Application.prototype.showGlobalActions = function() {
       '</div>';
     $body.append(globalActions);
   });
-}
+};
 
 
 /**
@@ -137,24 +133,32 @@ Cedar.Application.prototype.showGlobalActions = function() {
  * responsible for determining if we're in edit mode
  */
 Cedar.Auth = function() {
-}
+  return;
+};
+
 Cedar.Auth.prototype.isEditMode = function() {
   return this.isEditUrl();
-}
+};
+
 Cedar.Auth.prototype.isEditUrl = function() {
   var sPageURL = window.location.search.substring(1);
   var sURLVariables = sPageURL.split('&');
-  for (var i = 0; i < sURLVariables.length; i++) {
-    if (sURLVariables[i] == 'cdrlogin') {
+  var i = 0;
+  while (i < sURLVariables.length) {
+    if (sURLVariables[i] === 'cdrlogin') {
       return true;
     }
+    i++;
   }
   return false;
-}
+};
+
 Cedar.Auth.prototype.getLogOffURL = function() {
   return this.removeURLParameter(window.location.href, 'cdrlogin');
-}
-// adapted from stackoverflow: http://stackoverflow.com/questions/1634748/how-can-i-delete-a-query-string-parameter-in-javascript
+};
+
+// adapted from stackoverflow:
+// http://stackoverflow.com/questions/1634748/how-can-i-delete-a-query-string-parameter-in-javascript
 Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
   var splitUrl = url.split('#');
   var serverUrl = splitUrl[0];
@@ -162,7 +166,7 @@ Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
   if (clientUrl) {
     clientUrl = '#' + clientUrl;
   }
-  //prefer to use l.search if you have a location/link object
+  // prefer to use l.search if you have a location/link object
   var splitServerUrl= serverUrl.split('?');
   if (splitServerUrl.length>=2) {
 
@@ -170,11 +174,13 @@ Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
     var pars = splitServerUrl[1].split(/[&;]/g);
 
     //reverse iteration as may be destructive
-    for (var i= pars.length; i-- > 0;) {
-      //idiom for string.startsWith
+    var i = pars.length - 1;
+    while (i >= 0) {
+      // idiom for string.startsWith
       if (pars[i].lastIndexOf(prefix, 0) !== -1) {
         pars.splice(i, 1);
       }
+      i--;
     }
 
     var updatedServerUrl= splitServerUrl[0];
@@ -185,7 +191,7 @@ Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
   } else {
     return url;
   }
-}
+};
 
 
 /**
@@ -199,18 +205,19 @@ Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
 Cedar.Store = function() {
   this.loaded = false;
 
-  this.cache = localStorage;
+  this.cache = window.hasOwnProperty('localStorage') ? window.localStorage : {};
 
   if (Cedar.config.fetch) {
     this.refresh();
   }
 
   try {
-    return 'localStorage' in window && window['localStorage'] !== null;
+    return window.hasOwnProperty('localStorage');
   } catch (e) {
     return false;
   }
-}
+};
+
 /**
  * store a single json item by key
  *
@@ -218,8 +225,8 @@ Cedar.Store = function() {
  * @param <json> 'item'
  */
 Cedar.Store.prototype.put = function ( key, item ) {
-  localStorage[key] = JSON.stringify(item);
-}
+  this.cache[key] = JSON.stringify(item);
+};
 
 // Return local content immediately if possible. Otherwise return deferred remote content
 Cedar.Store.prototype.get = function(key) {
@@ -233,19 +240,19 @@ Cedar.Store.prototype.get = function(key) {
     Cedar.debug('get from cache: ' + key);
     return cachedDeferred;
   }
-}
+};
 
 // Deferred object containing local content
 Cedar.Store.prototype.cachedDeferred = function(key) {
   return $.Deferred().resolve(this.cache[key]);
-}
+};
 
 // Refresh local storage if needed and then return content
 Cedar.Store.prototype.remoteDeferred = function(key) {
   return this.refresh().then(function() {
     return this.cachedDeferred(key);
   }.bind(this));
-}
+};
 
 // Check content version and update if needed
 Cedar.Store.prototype.refresh = function() {
@@ -256,7 +263,7 @@ Cedar.Store.prototype.refresh = function() {
       return this.getRemote();
     }
   }.bind(this));
-}
+};
 
 // Get content objects from server and save to local storage
 Cedar.Store.prototype.getRemote = function(options) {
@@ -274,31 +281,36 @@ Cedar.Store.prototype.getRemote = function(options) {
     params: params,
     success: function(response) {
       $.each(response, function (index, value) {
-        if ("id" in value && "content" in value.settings) {
+        if (value.hasOwnProperty('id') && value.settings.hasOwnProperty('content')) {
           this.put(value.id, value);
           Cedar.debug("storing: " + value.id);
         }
       }.bind(this));
       Cedar.debug("local storage was updated");
       this.loaded = true;
-      Cedar.$.trigger("content:loaded");
+      Cedar.events.trigger("content:loaded");
     }.bind(this)
   });
-}
+};
 
 /**
  * clear the local storage or remove a single locally store item by key
  *
  * @param {ID} key
  */
-Cedar.Store.prototype.clear = function( key ) {
-  if ( typeof key === 'undefined' ) {
-    localStorage.clear();
-  }
-  else {
-    localStorage.removeItem(key);
-  }
-}
+ Cedar.Store.prototype.clear = function(key) {
+   if (key === undefined) {
+     if (window.hasOwnProperty('localStorage')) {
+       this.cache.clear();
+     } else {
+       this.cache = {};
+     }
+   }
+   else {
+     delete this.cache[key];
+   }
+ };
+
 /**
  * set the locally stored data version number
  *
@@ -306,16 +318,18 @@ Cedar.Store.prototype.clear = function( key ) {
  */
 Cedar.Store.prototype.setVersion = function(id) {
   Cedar.debug("updating to version #" + id);
-  localStorage["___CEDAR__DATA__FINGERPRINT___"] = id;
-}
+  this.cache["___CEDAR__DATA__FINGERPRINT___"] = id;
+};
+
 /**
  * return the currently stored data version number
  *
  * @return <string> data version number
  */
 Cedar.Store.prototype.getVersion = function() {
-  return localStorage["___CEDAR__DATA__FINGERPRINT___"];
-}
+  return this.cache["___CEDAR__DATA__FINGERPRINT___"];
+};
+
 /**
  * Query the server for the latest data version number
  *
@@ -326,22 +340,24 @@ Cedar.Store.prototype.checkVersion = function() {
     path: '/queries/status',
     success: function(response) {
       Cedar.debug("checking version #" + this.getVersion());
-      if ( this.getVersion() != response.settings.version ) {
+
+      // response.settings.version is being returned as an array and must be converted
+      if ( this.getVersion() !== response.settings.version.toString() ) {
         Cedar.debug('setting version: ' + response.settings.version);
         this.loaded = false;
         this.setVersion(response.settings.version);
       } else {
         Cedar.debug("version is up to date");
         this.loaded = true;
-        Cedar.$.trigger("content:loaded");
+        Cedar.events.trigger("content:loaded");
       }
     }.bind(this)
   });
-}
+};
 
 // Returns an already resolving getJSON request if it matches
 Cedar.Store.prototype.lockedRequest = function(options) {
-  options || (options = {});
+  options = options || {};
   this.requestCache || (this.requestCache = {});
 
   var requestKey = JSON.stringify({path: options.path, params: options.params});
@@ -350,7 +366,7 @@ Cedar.Store.prototype.lockedRequest = function(options) {
     .getJSON(Cedar.config.api + options.path, options.params).then(function(response){
       options.success(response);
     }.bind(this)));
-}
+};
 
 /**
  * Cedar.ContentEntry
@@ -373,7 +389,7 @@ Cedar.ContentEntry = function(options) {
   this.cedarId = this.options.cedarId;
   this.el = this.options.el;
   this.$el = $(this.el);
-}
+};
 
 Cedar.ContentEntry.prototype.apiGet = function() {
   return '/objects/contententries/';
@@ -391,20 +407,6 @@ Cedar.ContentEntry.prototype.apiList = function() {
   return 'guidlist';
 };
 
-Cedar.ContentEntry.prototype.hasLocalContent = function() {
-  if (typeof this.localContentExists === "undefined") {
-    var content = localStorage[this.cedarId];
-    this.localContentExists = false;
-    if (typeof content !== "undefined") {
-      var json = JSON.parse(content);
-      if (typeof json.id !== "undefined") {
-        this.localContentExists = true;
-      }
-    }
-  }
-  return this.localContentExists;
-}
-
 /**
  * parse the json for content and set this object's content
  *
@@ -415,15 +417,16 @@ Cedar.ContentEntry.prototype.setContent = function(data) {
     data = JSON.parse(data);
   }
 
-  if (!data || data.code == 'UNKNOWN_ID'){
+  if (!data || data.code === 'UNKNOWN_ID'){
     this.content = '';
-  } else if (typeof data.settings.content !== 'undefined') {
+  } else if (data.settings.hasOwnProperty('content')) {
     this.content = data.settings.content;
   } else {
     this.content = '';
     Cedar.debug('Cedar Error: Unable to parse json');
   }
-}
+};
+
 /**
  * return the object's content - takes into account edit mode styling
  *
@@ -436,7 +439,8 @@ Cedar.ContentEntry.prototype.getContent = function(){
   else {
     return this.content;
   }
-}
+};
+
 /**
  * is this a content entry json structure?
  *
@@ -444,44 +448,48 @@ Cedar.ContentEntry.prototype.getContent = function(){
  * @return <bool>
  */
 Cedar.ContentEntry.prototype.isContentEntry = function (json) {
-  if (typeof json === 'undefined') {
+  if (json === undefined) {
     return false;
   }
-  if (typeof json.settings === 'undefined' && typeof json.settings.content === 'undefined') {
+  if (json.hasOwnProperty('settings') && json.settings.hasOwnProperty('content')) {
     return false;
   }
 
   return true;
-}
+};
+
 /**
  * @return <json>
  */
 Cedar.ContentEntry.prototype.toJSON = function(){
   return {
     content: this.content
-  }
+  };
 };
+
 /**
  * fill self or provided element with content
  *
  * @param <element> optional
  */
 Cedar.ContentEntry.prototype.fill = function(element) {
-  if (typeof element !== 'undefined') {
+  if (element !== undefined) {
     $(element).html(this.getContent());
-  } else if (typeof this.$el !== 'undefined') {
+  } else if (this.$el instanceof jQuery) {
     this.$el.html(this.getContent());
   }
-}
+};
+
 /**
  * check store for this object's content
  */
 Cedar.ContentEntry.prototype.retrieve = function() {
- return Cedar.store.get(this.cedarId).then(function(response) {
-   this.setContent(response);
-   return this;
- }.bind(this));
-}
+  return Cedar.store.get(this.cedarId).then(function(response) {
+    this.setContent(response);
+    return this;
+  }.bind(this));
+};
+
 /**
  * retrive and fill the associated element
  */
@@ -489,7 +497,7 @@ Cedar.ContentEntry.prototype.render = function() {
   this.retrieve().done(function() {
     this.fill();
   }.bind(this));
-}
+};
 
 /**
  * provides styling for edit box
@@ -508,7 +516,8 @@ Cedar.ContentEntry.prototype.getEditOpen = function() {
   block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-edit"></i></a>';
   block += '</span>';
   return block;
-}
+};
+
 Cedar.ContentEntry.prototype.getEditClose = function(){
   return '</span>';
-}
+};
