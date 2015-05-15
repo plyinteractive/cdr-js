@@ -201,11 +201,9 @@ Cedar.Store = function() {
 
   this.cache = localStorage;
 
-  this.checkVersion = this.checkVersion().then(function() {
-    if (Cedar.config.fetch) {
-      Cedar.store.fetched = Cedar.store.refresh();
-    }
-  });
+  if (Cedar.config.fetch) {
+    this.refresh();
+  }
 
   try {
     return 'localStorage' in window && window['localStorage'] !== null;
@@ -251,17 +249,17 @@ Cedar.Store.prototype.remoteDeferred = function(key) {
 
 // Check content version and update if needed
 Cedar.Store.prototype.refresh = function() {
-  return this.checkVersion.then(function() {
+  return this.checkVersion().then(function() {
     if (this.loaded) {
       return $.Deferred().resolve();
     } else {
-      return this.getAll();
+      return this.getRemote();
     }
   }.bind(this));
 }
 
-// Get all content objects from server and save to local storage
-Cedar.Store.prototype.getAll = function(options) {
+// Get content objects from server and save to local storage
+Cedar.Store.prototype.getRemote = function(options) {
   var defaultOptions = {
     path: '/queries/contententries/'
   };
@@ -271,17 +269,21 @@ Cedar.Store.prototype.getAll = function(options) {
     guidfilter: options.filter
   });
 
-  return $.getJSON(Cedar.config.api + options.path, params).then(function(response) {
-    $.each(response, function (index, value) {
-      if ("id" in value && "content" in value.settings) {
-        this.put(value.id, value);
-        Cedar.debug("storing: " + value.id);
-      }
-    }.bind(this));
-    Cedar.debug("local storage was updated");
-    this.loaded = true;
-    Cedar.$.trigger("content:loaded");
-  }.bind(this));
+  return this.lockedRequest({
+    path: options.path,
+    params: params,
+    success: function(response) {
+      $.each(response, function (index, value) {
+        if ("id" in value && "content" in value.settings) {
+          this.put(value.id, value);
+          Cedar.debug("storing: " + value.id);
+        }
+      }.bind(this));
+      Cedar.debug("local storage was updated");
+      this.loaded = true;
+      Cedar.$.trigger("content:loaded");
+    }.bind(this)
+  });
 }
 
 /**
@@ -320,20 +322,34 @@ Cedar.Store.prototype.getVersion = function() {
  * @return <Deferred>
  */
 Cedar.Store.prototype.checkVersion = function() {
-  Cedar.debug("checking version #" + this.getVersion());
-  return $.when($.getJSON(Cedar.config.api + '/queries/status'))
-
-  .then( function(response) {
-    if ( Cedar.store.getVersion() != response.settings.version ) {
-      Cedar.debug('setting version: ' + response.settings.version);
-      Cedar.store.loaded = false;
-      Cedar.store.setVersion(response.settings.version);
-    } else {
-      Cedar.debug("version is up to date");
-      Cedar.store.loaded = true;
-      Cedar.$.trigger("content:loaded");
-    }
+  return this.lockedRequest({
+    path: '/queries/status',
+    success: function(response) {
+      Cedar.debug("checking version #" + this.getVersion());
+      if ( this.getVersion() != response.settings.version ) {
+        Cedar.debug('setting version: ' + response.settings.version);
+        this.loaded = false;
+        this.setVersion(response.settings.version);
+      } else {
+        Cedar.debug("version is up to date");
+        this.loaded = true;
+        Cedar.$.trigger("content:loaded");
+      }
+    }.bind(this)
   });
+}
+
+// Returns an already resolving getJSON request if it matches
+Cedar.Store.prototype.lockedRequest = function(options) {
+  options || (options = {});
+  this.requestCache || (this.requestCache = {});
+
+  var requestKey = JSON.stringify({path: options.path, params: options.params});
+
+  return this.requestCache[requestKey] || (this.requestCache[requestKey] = $
+    .getJSON(Cedar.config.api + options.path, options.params).then(function(response){
+      options.success(response);
+    }.bind(this)));
 }
 
 /**
