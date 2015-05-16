@@ -63,7 +63,7 @@ Handlebars.registerHelper('cedar', function(options) {
 
   var output = '';
 
-  new Cedar.ContentEntry({ cedarId: options.hash.id }).retrieve().then(function(contentEntry){
+  new Cedar.ContentEntry({ cedarId: options.hash.id }).load().then(function(contentEntry){
     if (blockHelperStyle()) {
       if (Cedar.auth.isEditMode()) {
         output += contentEntry.getEditOpen();
@@ -73,7 +73,7 @@ Handlebars.registerHelper('cedar', function(options) {
         output += contentEntry.getEditClose();
       }
     } else {
-      output = contentEntry.getContent();
+      output = contentEntry.toString();
     }
 
     replaceElement(outputEl.id, output);
