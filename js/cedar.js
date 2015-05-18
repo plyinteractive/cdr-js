@@ -255,7 +255,7 @@ Cedar.Store.prototype.getDeferred = function(key) {
     Cedar.debug('get from cache: ' + key);
     return cachedDeferred;
   }
-}
+};
 
 // Deferred object containing local content
 Cedar.Store.prototype.cachedDeferred = function(key) {
@@ -394,7 +394,7 @@ Cedar.ContentObject = function(options) {
   };
   this.options = $.extend({}, defaults, options);
   this.$el = $(this.options.el);
-}
+};
 
 Cedar.ContentObject.prototype = {
   render: function() {
@@ -453,6 +453,7 @@ Cedar.ContentObject.prototype = {
     return '</span>';
   }
 };
+
 Cedar.ContentObject.prototype.constructor = Cedar.ContentObject;
 
 /*
