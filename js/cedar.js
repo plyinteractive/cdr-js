@@ -205,7 +205,11 @@ Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
 Cedar.Store = function() {
   this.loaded = false;
 
-  this.cache = window.hasOwnProperty('localStorage') ? window.localStorage : {};
+  try {
+    this.cache = window.localStorage;
+  } catch (e) {
+    this.cache = {};
+  }
 
   if (Cedar.config.fetch) {
     this.refresh();
@@ -225,11 +229,22 @@ Cedar.Store = function() {
  * @param <json> 'item'
  */
 Cedar.Store.prototype.put = function ( key, item ) {
-  this.cache[key] = JSON.stringify(item);
+  this.cache[key] = typeof item === "string" ? item : JSON.stringify(item);
+};
+
+// Return promise of parsed content from local or remote storage
+Cedar.Store.prototype.get = function(key) {
+  return this.getDeferred(key).then(function(data) {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      return data;
+    }
+  });
 };
 
 // Return local content immediately if possible. Otherwise return deferred remote content
-Cedar.Store.prototype.get = function(key) {
+Cedar.Store.prototype.getDeferred = function(key) {
   var cachedDeferred = this.cachedDeferred(key);
   var remoteDeferred = this.remoteDeferred(key);
 
@@ -368,156 +383,91 @@ Cedar.Store.prototype.lockedRequest = function(options) {
     }.bind(this)));
 };
 
-/**
- * Cedar.ContentEntry
- *
- * basic content block class
- *
- * options:
- *
- * {
- *  el (element or jQuery selector)
- * }
- */
-Cedar.ContentEntry = function(options) {
+
+/*
+Cedar.ContentObject
+Parent class for all Cedar content object types
+*/
+Cedar.ContentObject = function(options) {
   var defaults = {
     el: '<div />'
   };
-
-  this.options = $.extend( {}, defaults, options );
-
-  this.cedarId = this.options.cedarId;
-  this.el = this.options.el;
-  this.$el = $(this.el);
+  this.options = $.extend({}, defaults, options);
+  this.$el = $(this.options.el);
 };
 
-Cedar.ContentEntry.prototype.apiGet = function() {
-  return '/objects/contententries/';
-};
+Cedar.ContentObject.prototype = {
+  render: function() {
+    this.load().then(function() {
+      this.$el.html(this.toString());
+    }.bind(this));
+  },
 
-Cedar.ContentEntry.prototype.apiQuery = function() {
-  return '/queries/contententries/';
-};
+  load: function() {
+    return Cedar.store.get(this.options.cedarId).then(function(data) {
+      this.setContent(data);
+      return this;
+    }.bind(this));
+  },
 
-Cedar.ContentEntry.prototype.apiFilter = function() {
-  return 'guidfilter';
-};
-
-Cedar.ContentEntry.prototype.apiList = function() {
-  return 'guidlist';
-};
-
-/**
- * parse the json for content and set this object's content
- *
- * @param <json>
- */
-Cedar.ContentEntry.prototype.setContent = function(data) {
-  if (typeof data === 'string') {
-    data = JSON.parse(data);
-  }
-
-  if (!data || data.code === 'UNKNOWN_ID'){
-    this.content = '';
-  } else if (data.settings.hasOwnProperty('content')) {
-    this.content = data.settings.content;
-  } else {
-    this.content = '';
-    Cedar.debug('Cedar Error: Unable to parse json');
-  }
-};
-
-/**
- * return the object's content - takes into account edit mode styling
- *
- * @return <HTML>
- */
-Cedar.ContentEntry.prototype.getContent = function(){
-  if (Cedar.auth.isEditMode()) {
-    return this.getEditOpen() + this.content + this.getEditClose();
-  }
-  else {
+  getContent: function() {
     return this.content;
+  },
+
+  setContent: function(data) {
+    this.content = data;
+  },
+
+  getContentWithEditTools: function() {
+    return this.getEditOpen() + this.getContent() + this.getEditClose();
+  },
+
+  toString: function() {
+    return Cedar.auth.isEditMode() ? this.getContentWithEditTools() : this.getContent();
+  },
+
+  toJSON: function() {
+    return {
+      content: this.getContent()
+    };
+  },
+
+  getEditOpen: function() {
+    var jsString = "if(event.stopPropagation){event.stopPropagation();}" +
+    "event.cancelBubble=true;" +
+    "window.location.href=this.attributes.href.value + \'&referer=' + encodeURIComponent(window.location.href) + '\';" +
+    "return false;";
+
+    var block = '<span class="cedar-cms-editable clearfix">';
+    block += '<span class="cedar-cms-edit-tools">';
+    block += '<a onclick="' + jsString + '" href="' + Cedar.config.server +
+             '/cmsadmin/EditData?cdr=1&t=ContentEntry&o=' +
+             encodeURIComponent(this.options.cedarId) +
+             '" class="cedar-cms-edit-icon cedar-js-edit" >';
+    block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-edit"></i></a>';
+    block += '</span>';
+    return block;
+  },
+
+  getEditClose: function() {
+    return '</span>';
   }
 };
 
-/**
- * is this a content entry json structure?
- *
- * @param <json>
- * @return <bool>
- */
-Cedar.ContentEntry.prototype.isContentEntry = function (json) {
-  if (json === undefined) {
-    return false;
-  }
-  if (json.hasOwnProperty('settings') && json.settings.hasOwnProperty('content')) {
-    return false;
-  }
+Cedar.ContentObject.prototype.constructor = Cedar.ContentObject;
 
-  return true;
+/*
+Cedar.ContentEntry
+basic content block class
+*/
+Cedar.ContentEntry = function(options) {
+  Cedar.ContentObject.call(this, options);
 };
 
-/**
- * @return <json>
- */
-Cedar.ContentEntry.prototype.toJSON = function(){
-  return {
-    content: this.content
-  };
-};
+Cedar.ContentEntry.prototype = Object.create(Cedar.ContentObject.prototype);
 
-/**
- * fill self or provided element with content
- *
- * @param <element> optional
- */
-Cedar.ContentEntry.prototype.fill = function(element) {
-  if (element !== undefined) {
-    $(element).html(this.getContent());
-  } else if (this.$el instanceof jQuery) {
-    this.$el.html(this.getContent());
-  }
-};
+Cedar.ContentEntry.prototype.constructor = Cedar.ContentEntry;
 
-/**
- * check store for this object's content
- */
-Cedar.ContentEntry.prototype.retrieve = function() {
-  return Cedar.store.get(this.cedarId).then(function(response) {
-    this.setContent(response);
-    return this;
-  }.bind(this));
-};
-
-/**
- * retrive and fill the associated element
- */
-Cedar.ContentEntry.prototype.render = function() {
-  this.retrieve().done(function() {
-    this.fill();
-  }.bind(this));
-};
-
-/**
- * provides styling for edit box
- */
-Cedar.ContentEntry.prototype.getEditOpen = function() {
-  var jsString = "if(event.stopPropagation){event.stopPropagation();}" +
-  "event.cancelBubble=true;" +
-  "window.location.href=this.attributes.href.value + \'&referer=' + encodeURIComponent(window.location.href) + '\';" +
-  "return false;";
-
-  var block = '<span class="cedar-cms-editable clearfix">';
-  block += '<span class="cedar-cms-edit-tools">';
-  block += '<a onclick="' + jsString + '" href="' + Cedar.config.server +
-           '/cmsadmin/EditData?cdr=1&t=ContentEntry&o=' + encodeURIComponent(this.cedarId) +
-           '" class="cedar-cms-edit-icon cedar-js-edit" >';
-  block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-edit"></i></a>';
-  block += '</span>';
-  return block;
-};
-
-Cedar.ContentEntry.prototype.getEditClose = function(){
-  return '</span>';
+Cedar.ContentEntry.prototype.setContent = function(data) {
+  this.content = (data.settings && data.settings.content) || '';
 };
