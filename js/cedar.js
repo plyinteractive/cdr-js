@@ -463,11 +463,27 @@ basic content block class
 Cedar.ContentEntry = function(options) {
   Cedar.ContentObject.call(this, options);
 };
-
 Cedar.ContentEntry.prototype = Object.create(Cedar.ContentObject.prototype);
-
 Cedar.ContentEntry.prototype.constructor = Cedar.ContentEntry;
 
 Cedar.ContentEntry.prototype.setContent = function(data) {
-  this.content = (data.settings && data.settings.content) || '';
+  this.content = (data && (data.settings && data.settings.content)) || '';
+};
+
+/*
+Cedar.Program
+program object class
+*/
+Cedar.Program = function(options) {
+  Cedar.ContentObject.call(this, options);
+};
+Cedar.Program.prototype = Object.create(Cedar.ContentObject.prototype);
+Cedar.Program.prototype.constructor = Cedar.Program;
+
+Cedar.Program.prototype.setContent = function(data) {
+  this.content = (data && (data.settings && JSON.parse(data.settings.content))) || '';
+};
+
+Cedar.Program.prototype.toJSON = function(data) {
+  return this.content;
 };
