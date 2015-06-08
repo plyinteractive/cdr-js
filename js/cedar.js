@@ -205,20 +205,20 @@ Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
 Cedar.Store = function() {
   this.loaded = false;
 
+  var fail;
+  var uid;
   try {
-    this.cache = window.localStorage;
-  } catch (e) {
+    uid = new Date;
+    (this.cache = window.localStorage).setItem(uid, uid);
+    fail = this.cache.getItem(uid) != uid;
+    this.cache.removeItem(uid);
+    fail && (this.cache = false);
+  } catch (exception) {
     this.cache = {};
   }
 
   if (Cedar.config.fetch) {
     this.refresh();
-  }
-
-  try {
-    return window.hasOwnProperty('localStorage');
-  } catch (e) {
-    return false;
   }
 };
 
