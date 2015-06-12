@@ -66,7 +66,7 @@ Cedar.Application = function(options) {
   Cedar.config.fetch = this.options.fetch;
 
   if (Cedar.events === undefined) {
-    Cedar.events = jQuery({});
+    Cedar.events = new Cedar.Events();
   }
 
   if ( Cedar.store === null ) {
@@ -126,6 +126,24 @@ Cedar.Application.prototype.showGlobalActions = function() {
   });
 };
 
+/**
+ * Cedar.Events
+ */
+Cedar.Events = function() {
+  this.eventCollection = {};
+};
+
+Cedar.Events.prototype.trigger = function(eventName) {
+  if (!this.eventCollection[eventName]) {
+    this.eventCollection[eventName] = document.createEvent('Event');
+    this.eventCollection[eventName].initEvent(eventName, true, true);
+  }
+  document.dispatchEvent(this.eventCollection[eventName]);
+};
+
+Cedar.Events.prototype.on = function(eventName, eventCallback) {
+  document.addEventListener(eventName, eventCallback);
+};
 
 /**
  * Cedar.Auth
