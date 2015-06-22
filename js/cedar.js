@@ -1,13 +1,14 @@
 /**
  * Global object for settings and storage
  */
-window.Cedar = {
+window.Cedar = window.Cedar || {};
+window.Cedar = $.extend({}, window.Cedar, {
   initialized: false,
   store: null,
-  auth: null,
-  config: {}
-};
-
+  auth: null
+});
+window.Cedar.config = window.Cedar.config || {}
+window.Cedar.config = $.extend({}, window.Cedar.config, {});
 
 /**
 * Cedar.Init
@@ -66,7 +67,7 @@ Cedar.Application = function(options) {
   Cedar.config.fetch = this.options.fetch;
 
   if (Cedar.events === undefined) {
-    Cedar.events = new Cedar.Events();
+    Cedar.events = jQuery({});
   }
 
   if ( Cedar.store === null ) {
@@ -126,24 +127,6 @@ Cedar.Application.prototype.showGlobalActions = function() {
   });
 };
 
-/**
- * Cedar.Events
- */
-Cedar.Events = function() {
-  this.eventCollection = {};
-};
-
-Cedar.Events.prototype.trigger = function(eventName) {
-  if (!this.eventCollection[eventName]) {
-    this.eventCollection[eventName] = document.createEvent('Event');
-    this.eventCollection[eventName].initEvent(eventName, true, true);
-  }
-  document.dispatchEvent(this.eventCollection[eventName]);
-};
-
-Cedar.Events.prototype.on = function(eventName, eventCallback) {
-  document.addEventListener(eventName, eventCallback);
-};
 
 /**
  * Cedar.Auth
@@ -394,11 +377,16 @@ Cedar.Store.prototype.lockedRequest = function(options) {
   this.requestCache || (this.requestCache = {});
 
   var requestKey = JSON.stringify({path: options.path, params: options.params});
+  var request = $.Deferred().resolve();
 
-  return this.requestCache[requestKey] || (this.requestCache[requestKey] = $
-    .getJSON(Cedar.config.api + options.path, options.params).then(function(response){
-      options.success(response);
-    }.bind(this)));
+  if (Cedar.config.liveMode) {
+    request = $.getJSON(Cedar.config.api + options.path, options.params)
+      .then(function(response) {
+        options.success(response);
+      }.bind(this));
+  }
+
+  return this.requestCache[requestKey] || (this.requestCache[requestKey] = request);
 };
 
 
@@ -429,7 +417,7 @@ Cedar.ContentObject.prototype = {
   },
 
   getContent: function() {
-    return this.content;
+    return this.content || this.options.defaultContent;
   },
 
   setContent: function(data) {
