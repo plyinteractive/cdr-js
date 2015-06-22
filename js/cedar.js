@@ -7,8 +7,9 @@ window.Cedar = $.extend({}, window.Cedar, {
   store: null,
   auth: null
 });
-window.Cedar.config = window.Cedar.config || {}
-window.Cedar.config = $.extend({}, window.Cedar.config, {});
+window.Cedar.config = window.Cedar.config || {
+  liveMode: true
+};
 
 /**
 * Cedar.Init
