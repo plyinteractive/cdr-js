@@ -128,6 +128,24 @@ Cedar.Application.prototype.showGlobalActions = function() {
   });
 };
 
+/**
+ * Cedar.Events
+ */
+Cedar.Events = function() {
+  this.eventCollection = {};
+};
+
+Cedar.Events.prototype.trigger = function(eventName) {
+  if (!this.eventCollection[eventName]) {
+    this.eventCollection[eventName] = document.createEvent('Event');
+    this.eventCollection[eventName].initEvent(eventName, true, true);
+  }
+  document.dispatchEvent(this.eventCollection[eventName]);
+};
+
+Cedar.Events.prototype.on = function(eventName, eventCallback) {
+  document.addEventListener(eventName, eventCallback);
+};
 
 /**
  * Cedar.Auth
@@ -157,25 +175,6 @@ Cedar.Auth.prototype.isEditUrl = function() {
 
 Cedar.Auth.prototype.getLogOffURL = function() {
   return this.removeURLParameter(window.location.href, 'cdrlogin');
-};
-
-/**
- * Cedar.Events
- */
-Cedar.Events = function() {
-  this.eventCollection = {};
-};
-
-Cedar.Events.prototype.trigger = function(eventName) {
-  if (!this.eventCollection[eventName]) {
-    this.eventCollection[eventName] = document.createEvent('Event');
-    this.eventCollection[eventName].initEvent(eventName, true, true);
-  }
-  document.dispatchEvent(this.eventCollection[eventName]);
-};
-
-Cedar.Events.prototype.on = function(eventName, eventCallback) {
-  document.addEventListener(eventName, eventCallback);
 };
 
 // adapted from stackoverflow:
