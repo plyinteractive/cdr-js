@@ -65,7 +65,7 @@ Handlebars.registerHelper('cedar', function(options) {
 
   var type = options.hash.type || 'ContentEntry';
 
-  new window.Cedar[type]({ cedarId: options.hash.id }).load().then(function(contentEntry){
+  new window.Cedar[type]({ cedarId: options.hash.id, defaultContent: options.hash.default }).load().then(function(contentEntry){
     if (blockHelperStyle()) {
       if (Cedar.auth.isEditMode()) {
         output += contentEntry.getEditOpen();

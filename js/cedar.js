@@ -1,13 +1,15 @@
 /**
  * Global object for settings and storage
  */
-window.Cedar = {
+window.Cedar = window.Cedar || {};
+window.Cedar = $.extend({}, window.Cedar, {
   initialized: false,
   store: null,
-  auth: null,
-  config: {}
+  auth: null
+});
+window.Cedar.config = window.Cedar.config || {
+  liveMode: true
 };
-
 
 /**
 * Cedar.Init
@@ -394,11 +396,16 @@ Cedar.Store.prototype.lockedRequest = function(options) {
   this.requestCache || (this.requestCache = {});
 
   var requestKey = JSON.stringify({path: options.path, params: options.params});
+  var request = $.Deferred().resolve();
 
-  return this.requestCache[requestKey] || (this.requestCache[requestKey] = $
-    .getJSON(Cedar.config.api + options.path, options.params).then(function(response){
-      options.success(response);
-    }.bind(this)));
+  if (Cedar.config.liveMode) {
+    request = $.getJSON(Cedar.config.api + options.path, options.params)
+      .then(function(response) {
+        options.success(response);
+      }.bind(this));
+  }
+
+  return this.requestCache[requestKey] || (this.requestCache[requestKey] = request);
 };
 
 
@@ -429,7 +436,7 @@ Cedar.ContentObject.prototype = {
   },
 
   getContent: function() {
-    return this.content;
+    return this.content || this.options.defaultContent;
   },
 
   setContent: function(data) {
