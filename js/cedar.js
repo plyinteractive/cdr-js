@@ -35,11 +35,6 @@ Cedar.debug = function(msg) {
 *
 * Application object for initializing and setting global values
 *
-* @param <Array> options
-*   - server : 'test.cdr.plyinc.com' - *required
-*   - debug : true | false
-*   - fetch : true | false
-*   - forceHttps : true | false
 */
 Cedar.Application = function(options) {
   if ( Cedar.initialized ) {
@@ -50,7 +45,7 @@ Cedar.Application = function(options) {
     debug: false,
     fetch: true,
     wait: false,
-    forceHttps: false,
+    allowUnsecured: false,
     objectNameFilter: '',
     liveMode: true
   };
@@ -106,10 +101,10 @@ Cedar.Application.prototype.initializeHTML = function() {
 };
 
 Cedar.Application.prototype.getProtocol = function() {
-  if (this.options.forceHttps || window.location.protocol === 'https:') {
-    return 'https://';
-  } else {
+  if (this.options.allowUnsecured && window.location.protocol === 'http:') {
     return 'http://';
+  } else {
+    return 'https://';
   }
 };
 
