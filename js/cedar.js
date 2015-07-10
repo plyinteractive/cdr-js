@@ -7,9 +7,7 @@ window.Cedar = $.extend({}, window.Cedar, {
   store: null,
   auth: null
 });
-window.Cedar.config = window.Cedar.config || {
-  liveMode: true
-};
+window.Cedar.config = window.Cedar.config || {};
 
 /**
 * Cedar.Init
@@ -52,10 +50,12 @@ Cedar.Application = function(options) {
     debug: false,
     fetch: true,
     wait: false,
-    forceHttps: false
+    forceHttps: false,
+    objectNameFilter: '',
+    liveMode: true
   };
 
-  this.options = $.extend({}, defaults, options);
+  this.options = $.extend({}, $.extend({}, window.Cedar.config, defaults), options);
 
   if (this.options.server === undefined) {
     throw 'Cedar Error: must provide "server" value on Init()';
@@ -66,6 +66,8 @@ Cedar.Application = function(options) {
   Cedar.config.debug = this.options.debug;
   Cedar.config.wait = this.options.wait;
   Cedar.config.fetch = this.options.fetch;
+  Cedar.config.objectNameFilter = this.options.objectNameFilter;
+  Cedar.config.liveMode = this.options.liveMode;
 
   if (Cedar.events === undefined) {
     Cedar.events = new Cedar.Events();
@@ -243,18 +245,23 @@ Cedar.Store = function() {
 };
 
 /**
- * store a single json item by key
- *
- * @param <string> 'key'
- * @param <json> 'item'
+ * get formatted version of type
  */
-Cedar.Store.prototype.put = function ( key, item ) {
-  this.cache[key] = typeof item === "string" ? item : JSON.stringify(item);
+Cedar.Store.prototype.formattedType = function (type) {
+  return "cedar_" + s(_(type).pluralize()).underscored().value();
+};
+
+/**
+ * store a collection of items by type
+ */
+Cedar.Store.prototype.putCollection = function ( type, collection ) {
+  var formattedType = this.formattedType(type);
+  this.cache[formattedType] = JSON.stringify(collection);
 };
 
 // Return promise of parsed content from local or remote storage
-Cedar.Store.prototype.get = function(key) {
-  return this.getDeferred(key).then(function(data) {
+Cedar.Store.prototype.get = function(type, attributes) {
+  return this.getDeferred(this.formattedType(type), attributes).then(function(data) {
     try {
       return JSON.parse(data);
     } catch (e) {
@@ -263,29 +270,43 @@ Cedar.Store.prototype.get = function(key) {
   });
 };
 
-// Return local content immediately if possible. Otherwise return deferred remote content
-Cedar.Store.prototype.getDeferred = function(key) {
-  var cachedDeferred = this.cachedDeferred(key);
-  var remoteDeferred = this.remoteDeferred(key);
+// Retrieve the locally-stored model or collection if it exists
+Cedar.Store.prototype.cachedObject = function(type, attributes) {
+  var cachedCollection = _((this.cache[type] && JSON.parse(this.cache[type]) || []));
+  var result;
+  if (attributes && attributes.hasOwnProperty('id')) {
+    result = cachedCollection.findWhere(attributes);
+  } else {
+    result = cachedCollection.where(attributes);
+  }
+  return result;
+};
 
-  if (Cedar.config.wait || !this.cache[key]) {
-    Cedar.debug('checking remote: ' + key);
+// Return local content immediately if possible. Otherwise return deferred remote content
+Cedar.Store.prototype.getDeferred = function(type, attributes) {
+  var cachedDeferred = this.cachedDeferred(type, attributes);
+  var remoteDeferred = this.remoteDeferred(type, attributes);
+
+  if (Cedar.config.wait || _(this.cachedObject(type, attributes)).isEmpty()) {
+    if (Cedar.config.liveMode) {
+      Cedar.debug('checking remote: ' + type + '/' + JSON.stringify(attributes));
+    }
     return remoteDeferred;
   } else {
-    Cedar.debug('get from cache: ' + key);
+    Cedar.debug('get from cache: ' + type + '/' + JSON.stringify(attributes));
     return cachedDeferred;
   }
 };
 
 // Deferred object containing local content
-Cedar.Store.prototype.cachedDeferred = function(key) {
-  return $.Deferred().resolve(this.cache[key]);
+Cedar.Store.prototype.cachedDeferred = function(type, attributes) {
+  return $.Deferred().resolve(this.cachedObject(type, attributes));
 };
 
 // Refresh local storage if needed and then return content
-Cedar.Store.prototype.remoteDeferred = function(key) {
+Cedar.Store.prototype.remoteDeferred = function(type, attributes) {
   return this.refresh().then(function() {
-    return this.cachedDeferred(key);
+    return this.cachedDeferred(type, attributes);
   }.bind(this));
 };
 
@@ -303,23 +324,23 @@ Cedar.Store.prototype.refresh = function() {
 // Get content objects from server and save to local storage
 Cedar.Store.prototype.getRemote = function(options) {
   var defaultOptions = {
-    path: '/queries/contententries/'
+    path: '/queries/all/'
   };
   options = $.extend({}, defaultOptions, options);
   var defaultParams = {};
   var params = $.extend({}, defaultParams, {
-    guidfilter: options.filter
+    filter: Cedar.config.objectNameFilter,
+    references: "all",
+    expand: "yes"
   });
 
   return this.lockedRequest({
     path: options.path,
     params: params,
     success: function(response) {
-      $.each(response, function (index, value) {
-        if (value.hasOwnProperty('id') && value.settings.hasOwnProperty('content')) {
-          this.put(value.id, value);
-          Cedar.debug("storing: " + value.id);
-        }
+      _.chain(response).each(function(collection, type) {
+        this.putCollection(type, collection);
+        Cedar.debug("storing: " + type);
       }.bind(this));
       Cedar.debug("local storage was updated");
       this.loaded = true;
@@ -393,19 +414,19 @@ Cedar.Store.prototype.checkVersion = function() {
 // Returns an already resolving getJSON request if it matches
 Cedar.Store.prototype.lockedRequest = function(options) {
   options = options || {};
-  this.requestCache || (this.requestCache = {});
-
-  var requestKey = JSON.stringify({path: options.path, params: options.params});
-  var request = $.Deferred().resolve();
 
   if (Cedar.config.liveMode) {
-    request = $.getJSON(Cedar.config.api + options.path, options.params)
-      .then(function(response) {
-        options.success(response);
-      }.bind(this));
-  }
+    this.requestCache || (this.requestCache = {});
 
-  return this.requestCache[requestKey] || (this.requestCache[requestKey] = request);
+    var requestKey = JSON.stringify({path: options.path, params: options.params});
+
+    return this.requestCache[requestKey] || (this.requestCache[requestKey] = $
+      .getJSON(Cedar.config.api + options.path, options.params).then(function(response){
+        options.success(response);
+      }.bind(this)));
+  } else {
+    return $.Deferred().resolve();
+  }
 };
 
 
@@ -415,6 +436,7 @@ Parent class for all Cedar content object types
 */
 Cedar.ContentObject = function(options) {
   var defaults = {
+    cedarType: 'ContentEntry',
     el: '<div />'
   };
   this.options = $.extend({}, defaults, options);
@@ -429,18 +451,18 @@ Cedar.ContentObject.prototype = {
   },
 
   load: function() {
-    return Cedar.store.get(this.options.cedarId).then(function(data) {
+    return Cedar.store.get(this.options.cedarType, this.options.cedarId).then(function(data) {
       this.setContent(data);
       return this;
     }.bind(this));
   },
 
   getContent: function() {
-    return this.content || this.options.defaultContent;
+    return (this.content || this.options.defaultContent) || '';
   },
 
   setContent: function(data) {
-    this.content = data;
+    this.content = data || '';
   },
 
   getContentWithEditTools: function() {
@@ -452,9 +474,11 @@ Cedar.ContentObject.prototype = {
   },
 
   toJSON: function() {
-    return {
-      content: this.getContent()
-    };
+    return _.chain(this.content)
+      .pairs()
+      .map(function(pair) { return [ s.camelize(pair[0]), pair[1] ]; })
+      .object()
+      .value();
   },
 
   getEditOpen: function() {
@@ -466,7 +490,9 @@ Cedar.ContentObject.prototype = {
     var block = '<span class="cedar-cms-editable clearfix">';
     block += '<span class="cedar-cms-edit-tools">';
     block += '<a onclick="' + jsString + '" href="' + Cedar.config.server +
-             '/cmsadmin/EditData?cdr=1&t=ContentEntry&o=' +
+             '/cmsadmin/EditData?cdr=1&t=' +
+             this.options.cedarType +
+             '&o=' +
              encodeURIComponent(this.options.cedarId) +
              '" class="cedar-cms-edit-icon cedar-js-edit" >';
     block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-edit"></i></a>';
@@ -492,23 +518,11 @@ Cedar.ContentEntry.prototype = Object.create(Cedar.ContentObject.prototype);
 Cedar.ContentEntry.prototype.constructor = Cedar.ContentEntry;
 
 Cedar.ContentEntry.prototype.setContent = function(data) {
-  this.content = (data && (data.settings && data.settings.content)) || '';
+  this.content = (data && data.content) || '';
 };
 
-/*
-Cedar.Program
-program object class
-*/
-Cedar.Program = function(options) {
-  Cedar.ContentObject.call(this, options);
-};
-Cedar.Program.prototype = Object.create(Cedar.ContentObject.prototype);
-Cedar.Program.prototype.constructor = Cedar.Program;
-
-Cedar.Program.prototype.setContent = function(data) {
-  this.content = (data && (data.settings && JSON.parse(data.settings.content))) || '';
-};
-
-Cedar.Program.prototype.toJSON = function(data) {
-  return this.content;
+Cedar.ContentEntry.prototype.toJSON = function(data) {
+  return {
+    content: this.getContent()
+  };
 };

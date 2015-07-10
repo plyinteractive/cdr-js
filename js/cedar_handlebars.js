@@ -64,18 +64,22 @@ Handlebars.registerHelper('cedar', function(options) {
   var output = '';
 
   var type = options.hash.type || 'ContentEntry';
+  var cedarClass = blockHelperStyle() ? 'ContentObject' : 'ContentEntry'
 
-  new window.Cedar[type]({ cedarId: options.hash.id, defaultContent: options.hash.default }).load().then(function(contentEntry){
+  Cedar.store.get(type, {id: options.hash.id}).then(function(data){
+    var cedarObject = new window.Cedar[cedarClass]({ cedarId: options.hash.id, cedarType: type, defaultContent: options.hash.default });
+    cedarObject.setContent(data);
+
     if (blockHelperStyle()) {
       if (Cedar.auth.isEditMode()) {
-        output += contentEntry.getEditOpen();
+        output += cedarObject.getEditOpen();
       }
-      output += unescapeHtml(options.fn(contentEntry.toJSON()));
+      output += unescapeHtml(options.fn(cedarObject.toJSON()));
       if (Cedar.auth.isEditMode()) {
-        output += contentEntry.getEditClose();
+        output += cedarObject.getEditClose();
       }
     } else {
-      output = contentEntry.toString();
+      output = cedarObject.toString();
     }
 
     replaceElement(outputEl.id, output);
