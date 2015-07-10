@@ -7,9 +7,7 @@ window.Cedar = $.extend({}, window.Cedar, {
   store: null,
   auth: null
 });
-window.Cedar.config = window.Cedar.config || {
-  liveMode: true
-};
+window.Cedar.config = window.Cedar.config || {};
 
 /**
 * Cedar.Init
@@ -53,10 +51,11 @@ Cedar.Application = function(options) {
     fetch: true,
     wait: false,
     forceHttps: false,
-    objectNameFilter: ''
+    objectNameFilter: '',
+    liveMode: true
   };
 
-  this.options = $.extend({}, defaults, options);
+  this.options = $.extend({}, $.extend({}, window.Cedar.config, defaults), options);
 
   if (this.options.server === undefined) {
     throw 'Cedar Error: must provide "server" value on Init()';
@@ -68,6 +67,7 @@ Cedar.Application = function(options) {
   Cedar.config.wait = this.options.wait;
   Cedar.config.fetch = this.options.fetch;
   Cedar.config.objectNameFilter = this.options.objectNameFilter;
+  Cedar.config.liveMode = this.options.liveMode;
 
   if (Cedar.events === undefined) {
     Cedar.events = new Cedar.Events();
@@ -288,7 +288,9 @@ Cedar.Store.prototype.getDeferred = function(type, attributes) {
   var remoteDeferred = this.remoteDeferred(type, attributes);
 
   if (Cedar.config.wait || _(this.cachedObject(type, attributes)).isEmpty()) {
-    Cedar.debug('checking remote: ' + type + '/' + JSON.stringify(attributes));
+    if (Cedar.config.liveMode) {
+      Cedar.debug('checking remote: ' + type + '/' + JSON.stringify(attributes));
+    }
     return remoteDeferred;
   } else {
     Cedar.debug('get from cache: ' + type + '/' + JSON.stringify(attributes));
