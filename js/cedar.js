@@ -50,7 +50,7 @@ Cedar.Application = function(options) {
     liveMode: true
   };
 
-  this.options = $.extend({}, $.extend({}, window.Cedar.config, defaults), options);
+  this.options = $.extend({}, $.extend({}, defaults, window.Cedar.config), options);
 
   if (this.options.server === undefined) {
     throw 'Cedar Error: must provide "server" value on Init()';
