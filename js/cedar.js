@@ -47,7 +47,8 @@ Cedar.Application = function(options) {
     wait: false,
     allowUnsecured: false,
     objectNameFilter: '',
-    liveMode: true
+    liveMode: true,
+    initHTML: false
   };
 
   this.options = $.extend({}, $.extend({}, defaults, window.Cedar.config), options);
@@ -63,6 +64,7 @@ Cedar.Application = function(options) {
   Cedar.config.fetch = this.options.fetch;
   Cedar.config.objectNameFilter = this.options.objectNameFilter;
   Cedar.config.liveMode = this.options.liveMode;
+  Cedar.config.initHTML = this.options.initHTML;
 
   if (Cedar.events === undefined) {
     Cedar.events = new Cedar.Events();
@@ -78,7 +80,9 @@ Cedar.Application = function(options) {
 
   Cedar.initialized = true;
 
-  this.initializeHTML();
+  if (Cedar.config.initHTML) {
+    this.initializeHTML();
+  }
 };
 
 Cedar.Application.prototype.initializeHTML = function() {
