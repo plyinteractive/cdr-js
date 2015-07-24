@@ -50,10 +50,6 @@ Handlebars.registerHelper('cedar', function(options) {
         parentEl.insertBefore(nodeList[0], renderedEl);
       }
       parentEl.removeChild(renderedEl);
-
-      if (document.readyState === 'ready' || document.readyState === 'complete') {
-        $(document).trigger("DOMContentLoaded");
-      }
     }
   }
 

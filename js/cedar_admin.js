@@ -3,7 +3,7 @@ Cedar.Admin = function() {
     this.showGlobalActions();
   }
 
-  $(document).on("DOMContentLoaded", _.bind(function(event) {
+  this.observeDOM('body', _.bind(function() {
     if (this.isEditMode()) {
       this.scanDOM();
     }
@@ -17,6 +17,20 @@ Cedar.Admin.prototype.scanDOM = function() {
     $el.prepend(editTools);
     $el.addClass("cedar-cms-editable clearfix");
   }, this));
+};
+
+Cedar.Admin.prototype.observeDOM = function(selector, callback) {
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+  if (MutationObserver){
+    var observer = new MutationObserver(function(mutations, observer) {
+      if (mutations[0].addedNodes.length || mutations[0].removedNodes.length) {
+        observer.disconnect();
+        callback();
+        observer.observe($(selector)[0], { childList:true, subtree:true });
+      }
+    });
+    observer.observe($(selector)[0], { childList:true, subtree:true });
+  }
 };
 
 Cedar.Admin.prototype.isEditMode = function() {
