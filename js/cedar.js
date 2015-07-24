@@ -5,7 +5,7 @@ window.Cedar = window.Cedar || {};
 window.Cedar = $.extend({}, window.Cedar, {
   initialized: false,
   store: null,
-  auth: null
+  admin: null
 });
 window.Cedar.config = window.Cedar.config || {};
 
@@ -72,12 +72,8 @@ Cedar.Application = function(options) {
     Cedar.store = new Cedar.Store();
   }
 
-  if ( Cedar.auth === null ) {
-    Cedar.auth = new Cedar.Auth();
-  }
-
-  if (Cedar.auth.isEditMode()) {
-    this.showGlobalActions();
+  if ( Cedar.admin === null ) {
+    Cedar.admin = new Cedar.Admin();
   }
 
   Cedar.initialized = true;
@@ -108,23 +104,6 @@ Cedar.Application.prototype.getProtocol = function() {
   }
 };
 
-Cedar.Application.prototype.showGlobalActions = function() {
-  $(document).ready(function() {
-    var $body = $('body');
-    var globalActions = '<div class="cedar-cms-global-actions">' +
-      '<a href="#" class="cedar-cms-global-action" onclick="window.location.reload();">' +
-      '<span class="cedar-cms-icon cedar-cms-icon-edit"></span> ' +
-      '<span class="cedar-cms-global-action-label">Refresh</span>' +
-      '</a><br>' +
-      '<a class="cedar-cms-global-action" href="' + Cedar.auth.getLogOffURL() + '">' +
-      '<span class="cedar-cms-icon cedar-cms-icon-edit"></span> ' +
-      '<span class="cedar-cms-global-action-label">Log Off Cedar</span>' +
-      '</a>' +
-      '</div>';
-    $body.append(globalActions);
-  });
-};
-
 /**
  * Cedar.Events
  */
@@ -143,73 +122,6 @@ Cedar.Events.prototype.trigger = function(eventName) {
 Cedar.Events.prototype.on = function(eventName, eventCallback) {
   document.addEventListener(eventName, eventCallback);
 };
-
-/**
- * Cedar.Auth
- *
- * responsible for determining if we're in edit mode
- */
-Cedar.Auth = function() {
-  return;
-};
-
-Cedar.Auth.prototype.isEditMode = function() {
-  return this.isEditUrl();
-};
-
-Cedar.Auth.prototype.isEditUrl = function() {
-  var sPageURL = window.location.search.substring(1);
-  var sURLVariables = sPageURL.split('&');
-  var i = 0;
-  while (i < sURLVariables.length) {
-    if (sURLVariables[i] === 'cdrlogin') {
-      return true;
-    }
-    i++;
-  }
-  return false;
-};
-
-Cedar.Auth.prototype.getLogOffURL = function() {
-  return this.removeURLParameter(window.location.href, 'cdrlogin');
-};
-
-// adapted from stackoverflow:
-// http://stackoverflow.com/questions/1634748/how-can-i-delete-a-query-string-parameter-in-javascript
-Cedar.Auth.prototype.removeURLParameter = function(url, parameter) {
-  var splitUrl = url.split('#');
-  var serverUrl = splitUrl[0];
-  var clientUrl = splitUrl[1] || '';
-  if (clientUrl) {
-    clientUrl = '#' + clientUrl;
-  }
-  // prefer to use l.search if you have a location/link object
-  var splitServerUrl= serverUrl.split('?');
-  if (splitServerUrl.length>=2) {
-
-    var prefix = encodeURIComponent(parameter); //+'=';
-    var pars = splitServerUrl[1].split(/[&;]/g);
-
-    //reverse iteration as may be destructive
-    var i = pars.length - 1;
-    while (i >= 0) {
-      // idiom for string.startsWith
-      if (pars[i].lastIndexOf(prefix, 0) !== -1) {
-        pars.splice(i, 1);
-      }
-      i--;
-    }
-
-    var updatedServerUrl= splitServerUrl[0];
-    if (pars.length > 0) {
-      updatedServerUrl += '?'+pars.join('&');
-    }
-    return updatedServerUrl + clientUrl;
-  } else {
-    return url;
-  }
-};
-
 
 /**
  * Cedar.Store
@@ -465,7 +377,7 @@ Cedar.ContentObject.prototype = {
   },
 
   toString: function() {
-    return Cedar.auth.isEditMode() ? this.getContentWithEditTools() : this.getContent();
+    return Cedar.admin.isEditMode() ? this.getContentWithEditTools() : this.getContent();
   },
 
   toJSON: function() {
@@ -477,22 +389,10 @@ Cedar.ContentObject.prototype = {
   },
 
   getEditOpen: function() {
-    var jsString = "if(event.stopPropagation){event.stopPropagation();}" +
-    "event.cancelBubble=true;" +
-    "window.location.href=this.attributes.href.value + \'&referer=' + encodeURIComponent(window.location.href) + '\';" +
-    "return false;";
-
-    var block = '<span class="cedar-cms-editable clearfix">';
-    block += '<span class="cedar-cms-edit-tools">';
-    block += '<a onclick="' + jsString + '" href="' + Cedar.config.server +
-             '/cmsadmin/EditData?cdr=1&t=' +
-             this.options.cedarType +
-             '&o=' +
-             encodeURIComponent(this.options.cedarId) +
-             '" class="cedar-cms-edit-icon cedar-js-edit" >';
-    block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-edit"></i></a>';
-    block += '</span>';
-    return block;
+    return '<span ' +
+      'data-cedar-type="' + this.options.cedarType + '" ' +
+      'data-cedar-id="' + this.options.cedarId + '" ' +
+      '>';
   },
 
   getEditClose: function() {
