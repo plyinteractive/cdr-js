@@ -1,22 +1,28 @@
+window.Cedar = window.Cedar || {};
+
 Cedar.Admin = function() {
   if (this.isEditMode()) {
     this.showGlobalActions();
   }
 
+  this.scanDOM();
   this.observeDOM('body', _.bind(function() {
-    if (this.isEditMode()) {
-      this.scanDOM();
-    }
+    this.scanDOM();
   }, this));
 };
 
 Cedar.Admin.prototype.scanDOM = function() {
-  $('[data-cedar-id]').each(_.bind(function(index, el){
-    var $el = $(el);
-    var editTools = $(this.getEditTools($el.data()));
-    $el.prepend(editTools);
-    $el.addClass("cedar-cms-editable clearfix");
-  }, this));
+  var cedarClass = "cedar-cms-editable";
+  if (this.isEditMode()) {
+    $('[data-cedar-id]').each(_.bind(function(index, el){
+      var $el = $(el);
+      if (!$el.hasClass(cedarClass)) {
+        var editTools = $(this.getEditTools($el.data()));
+        $el.prepend(editTools);
+        $el.addClass(cedarClass + " clearfix");
+      }
+    }, this));
+  }
 };
 
 Cedar.Admin.prototype.observeDOM = function(selector, callback) {
