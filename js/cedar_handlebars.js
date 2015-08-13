@@ -1,3 +1,9 @@
+if (_(Handlebars).isUndefined()) {
+  if (!_(Ember).isUndefined()) {
+    var Handlebars = Ember.Handlebars;
+  }
+}
+
 Handlebars.registerHelper('cedar', function(options) {
   "use strict";
 

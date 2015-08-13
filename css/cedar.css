@@ -109,6 +109,7 @@
   top: 0;
   right: 0;
   text-align: left !important;
+  z-index: 1000000;
 }
 .cedar-cms-global-action {
   display: inline-block !important;

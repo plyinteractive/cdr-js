@@ -183,12 +183,12 @@ Cedar.Store.prototype.get = function(type, attributes) {
 
 // Retrieve the locally-stored model or collection if it exists
 Cedar.Store.prototype.cachedObject = function(type, attributes) {
-  var cachedCollection = _((this.cache[type] && JSON.parse(this.cache[type]) || []));
+  var cachedCollection = (this.cache[type] && JSON.parse(this.cache[type]) || []);
   var result;
   if (attributes && attributes.hasOwnProperty('id')) {
-    result = cachedCollection.findWhere(attributes);
+    result = _.findWhere(cachedCollection, attributes);
   } else {
-    result = cachedCollection.where(attributes);
+    result = _.where(cachedCollection, attributes);
   }
   return result;
 };
@@ -249,7 +249,7 @@ Cedar.Store.prototype.getRemote = function(options) {
     path: options.path,
     params: params,
     success: function(response) {
-      _.chain(response).each(function(collection, type) {
+      _.each(response, function(collection, type) {
         this.putCollection(type, collection);
         Cedar.debug("storing: " + type);
       }.bind(this));
