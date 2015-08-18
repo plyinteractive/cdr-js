@@ -40,20 +40,25 @@ Cedar.Admin.prototype.observeDOM = function(selector, callback) {
 };
 
 Cedar.Admin.prototype.isEditMode = function() {
-  return this.isEditUrl();
+  return this.hasEditModeCookie() || this.hasEditModeUrl();
 };
 
-Cedar.Admin.prototype.isEditUrl = function() {
+Cedar.Admin.prototype.hasEditModeUrl = function() {
   var sPageURL = window.location.search.substring(1);
   var sURLVariables = sPageURL.split('&');
   var i = 0;
   while (i < sURLVariables.length) {
     if (sURLVariables[i] === 'cdrlogin') {
+      document.cookie = "cedarEditMode=";
       return true;
     }
     i++;
   }
   return false;
+};
+
+Cedar.Admin.prototype.hasEditModeCookie = function() {
+  return (new RegExp("(?:^|;\\s*)cedarEditMode\\s*\\=")).test(document.cookie);
 };
 
 Cedar.Admin.prototype.showGlobalActions = function() {
@@ -64,13 +69,22 @@ Cedar.Admin.prototype.showGlobalActions = function() {
       '<span class="cedar-cms-icon cedar-cms-icon-edit"></span> ' +
       '<span class="cedar-cms-global-action-label">Refresh</span>' +
       '</a><br>' +
-      '<a class="cedar-cms-global-action" href="' + this.getLogOffURL() + '">' +
+      '<a class="cedar-cms-global-action js-cedar-cms-log-off" href="#">' +
       '<span class="cedar-cms-icon cedar-cms-icon-edit"></span> ' +
       '<span class="cedar-cms-global-action-label">Log Off Cedar</span>' +
       '</a>' +
       '</div>';
     $body.append(globalActions);
+    $('.js-cedar-cms-log-off').on('click', _.bind(function(e) {
+      this.logOff(e);
+    }, this));
   }, this));
+};
+
+Cedar.Admin.prototype.logOff = function(event) {
+  event.preventDefault();
+  document.cookie = "cedarEditMode=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  location.reload(true);
 };
 
 Cedar.Admin.prototype.getLogOffURL = function() {
