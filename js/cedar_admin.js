@@ -14,7 +14,7 @@ Cedar.Admin = function() {
 Cedar.Admin.prototype.scanDOM = function() {
   var cedarClass = "cedar-cms-editable";
   if (this.isEditMode()) {
-    $('[data-cedar-id]').each(_.bind(function(index, el){
+    $('[data-cedar-type]').each(_.bind(function(index, el){
       var $el = $(el);
       if (!$el.hasClass(cedarClass)) {
         var editTools = $(this.getEditTools($el.data()));
@@ -84,11 +84,27 @@ Cedar.Admin.prototype.showGlobalActions = function() {
 Cedar.Admin.prototype.logOff = function(event) {
   event.preventDefault();
   document.cookie = "cedarEditMode=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  location.reload(true);
+  if (location.href === this.getLogOffURL()) {
+    location.reload(true);
+  } else {
+    window.location.href = this.getLogOffURL();
+  }
 };
 
 Cedar.Admin.prototype.getLogOffURL = function() {
   return this.removeURLParameter(window.location.href, 'cdrlogin');
+};
+
+Cedar.Admin.prototype.getEditLink = function(options) {
+  var output = Cedar.config.server + '/cmsadmin/';
+
+  if (options.cedarId) {
+    output += 'EditData?cdr=1&t=' + options.cedarType + '&o=' + encodeURIComponent(options.cedarId);
+  } else {
+    output += 'ManageData?cdr=1&t=' + options.cedarType;
+  }
+
+  return output;
 };
 
 Cedar.Admin.prototype.getEditTools = function(options) {
@@ -98,11 +114,7 @@ Cedar.Admin.prototype.getEditTools = function(options) {
   "return false;";
 
   var block = '<span class="cedar-cms-edit-tools">';
-  block += '<a onclick="' + jsString + '" href="' + Cedar.config.server +
-           '/cmsadmin/EditData?cdr=1&t=' +
-           options.cedarType +
-           '&o=' +
-           encodeURIComponent(options.cedarId) +
+  block += '<a onclick="' + jsString + '" href="' + this.getEditLink(options) +
            '" class="cedar-cms-edit-icon cedar-js-edit" >';
   block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-edit"></i></a>';
   block += '</span>';
