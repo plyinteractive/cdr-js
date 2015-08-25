@@ -417,7 +417,7 @@ Cedar.ContentEntry.prototype = Object.create(Cedar.ContentObject.prototype);
 Cedar.ContentEntry.prototype.constructor = Cedar.ContentEntry;
 
 Cedar.ContentEntry.prototype.setContent = function(data) {
-  this.content = (data && data.content) || '';
+  this.content = (data && data.content) || (data && (data.settings && data.settings.content)) || '';
 };
 
 Cedar.ContentEntry.prototype.toJSON = function(data) {

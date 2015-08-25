@@ -77,11 +77,11 @@ Handlebars.registerHelper('cedar', function(options) {
     cedarObject.setContent(data);
 
     if (blockHelperStyle()) {
-      if (Cedar.auth.isEditMode()) {
+      if (Cedar.admin.isEditMode()) {
         output += cedarObject.getEditOpen();
       }
       output += unescapeHtml(options.fn(cedarObject.toJSON()));
-      if (Cedar.auth.isEditMode()) {
+      if (Cedar.admin.isEditMode()) {
         output += cedarObject.getEditClose();
       }
     } else {

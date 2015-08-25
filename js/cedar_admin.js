@@ -97,12 +97,8 @@ Cedar.Admin.prototype.getLogOffURL = function() {
 
 Cedar.Admin.prototype.getEditLink = function(options) {
   var output = Cedar.config.server + '/cmsadmin/';
-
-  if (options.cedarId) {
-    output += 'EditData?cdr=1&t=' + options.cedarType + '&o=' + encodeURIComponent(options.cedarId);
-  } else {
-    output += 'ManageData?cdr=1&t=' + options.cedarType;
-  }
+  output += options.cedarType === 'ContentEntry' ? 'Edit' : 'Select';
+  output += 'Data?cdr=1&t=' + options.cedarType + '&o=' + encodeURIComponent(options.cedarId);
 
   return output;
 };
