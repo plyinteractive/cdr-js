@@ -17,6 +17,10 @@
   margin: 0 !important;
 }
 
+div.cedar-cms-editable {
+  width: 100% !important;
+}
+
 .cedar-cms-editable:before {
   content: "";
   position: absolute;
