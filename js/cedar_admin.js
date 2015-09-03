@@ -65,13 +65,9 @@ Cedar.Admin.prototype.showGlobalActions = function() {
   $(document).ready(_.bind(function() {
     var $body = $('body');
     var globalActions = '<div class="cedar-cms-global-actions">' +
-      '<a href="#" class="cedar-cms-global-action" onclick="window.location.reload();">' +
-      '<span class="cedar-cms-icon cedar-cms-icon-edit"></span> ' +
-      '<span class="cedar-cms-global-action-label">Refresh</span>' +
-      '</a><br>' +
       '<a class="cedar-cms-global-action js-cedar-cms-log-off" href="#">' +
-      '<span class="cedar-cms-icon cedar-cms-icon-edit"></span> ' +
-      '<span class="cedar-cms-global-action-label">Log Off Cedar</span>' +
+      '<span class="cedar-cms-icon cedar-cms-icon-nav"></span> ' +
+      '<span class="cedar-cms-global-action-label">Log Off</span>' +
       '</a>' +
       '</div>';
     $body.append(globalActions);
@@ -109,10 +105,12 @@ Cedar.Admin.prototype.getEditTools = function(options) {
   "window.location.href=this.attributes.href.value + \'&referer=' + encodeURIComponent(window.location.href) + '\';" +
   "return false;";
 
+  var iconClass = options.cedarType = 'ContentEntry' ? 'edit' : 'list';
+
   var block = '<span class="cedar-cms-edit-tools">';
   block += '<a onclick="' + jsString + '" href="' + this.getEditLink(options) +
            '" class="cedar-cms-edit-icon cedar-js-edit" >';
-  block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-edit"></i></a>';
+  block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-' + iconClass + '"></i></a>';
   block += '</span>';
   return block;
 };
