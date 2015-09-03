@@ -105,7 +105,7 @@ Cedar.Admin.prototype.getEditTools = function(options) {
   "window.location.href=this.attributes.href.value + \'&referer=' + encodeURIComponent(window.location.href) + '\';" +
   "return false;";
 
-  var iconClass = options.cedarType = 'ContentEntry' ? 'edit' : 'list';
+  var iconClass = options.cedarType === 'ContentEntry' ? 'edit' : 'list';
 
   var block = '<span class="cedar-cms-edit-tools">';
   block += '<a onclick="' + jsString + '" href="' + this.getEditLink(options) +
