@@ -2,7 +2,7 @@ window.Cedar = window.Cedar || {};
 
 Cedar.Admin = function() {
   if (this.isEditMode()) {
-    this.showGlobalActions();
+    this.toolbar();
   }
 
   this.scanDOM();
@@ -20,6 +20,9 @@ Cedar.Admin.prototype.scanDOM = function() {
         var editTools = $(this.getEditTools($el.data()));
         $el.prepend(editTools);
         $el.addClass(cedarClass + " clearfix");
+        if (Cedar.config.inlineEditing) {
+          $el.find('.cedar-js-edit').on('click', _.bind(this.loadIframeSrc, this));
+        }
       }
     }, this));
   }
@@ -37,6 +40,26 @@ Cedar.Admin.prototype.observeDOM = function(selector, callback) {
     });
     observer.observe($(selector)[0], { childList:true, subtree:true });
   }
+};
+
+Cedar.Admin.prototype.loadIframeSrc = function(event) {
+  event.preventDefault();
+  this.$adminIframe.on("load", _.bind(function() {
+    $(this.$adminIframe).off('load');
+    $(this.$adminIframe).on('load', _.bind(function(event) {
+      window.location.reload(true);
+    }, this));
+    var iframeContents = this.$adminIframe.contents();
+    var iframeForm = iframeContents.find('#editForm');
+    iframeContents.find('.cms-dashboard').hide();
+    iframeContents.find('#cmsToolbarPlaceholder').hide();
+    iframeForm.on('submit', _.bind(function(event) {
+      this.$iframeContainer.hide();
+    }, this));
+    iframeForm.find('.s-cancel-edit').on('click', _.bind(this.hideIframe, this));
+    this.$iframeContainer.show();
+  }, this));
+  this.$adminIframe.attr('src', event.currentTarget.href);
 };
 
 Cedar.Admin.prototype.isEditMode = function() {
@@ -61,20 +84,46 @@ Cedar.Admin.prototype.hasEditModeCookie = function() {
   return (new RegExp("(?:^|;\\s*)cedarEditMode\\s*\\=")).test(document.cookie);
 };
 
-Cedar.Admin.prototype.showGlobalActions = function() {
+Cedar.Admin.prototype.toolbar = function(show) {
   $(document).ready(_.bind(function() {
-    var $body = $('body');
+    this.$body = $('body');
     var globalActions = '<div class="cedar-cms-global-actions">' +
       '<a class="cedar-cms-global-action js-cedar-cms-log-off" href="#">' +
       '<span class="cedar-cms-icon cedar-cms-icon-nav"></span> ' +
       '<span class="cedar-cms-global-action-label">Log Off</span>' +
       '</a>' +
       '</div>';
-    $body.append(globalActions);
+    this.$body.append(globalActions);
+    this.$body.addClass("cedar-cms-logged-in");
     $('.js-cedar-cms-log-off').on('click', _.bind(function(e) {
       this.logOff(e);
     }, this));
+
+    if (Cedar.config.inlineEditing) {
+      this.renderIframe();
+    }
   }, this));
+};
+
+Cedar.Admin.prototype.renderIframe = function() {
+  $(document).ready(_.bind(function() {
+    var $body = $('.cedar-cms-global-actions');
+    var $closeButton = $('<a class="cedar-cms-global-action js-cedar-cms-close-iframe" href="#">' +
+      '<span class="cedar-cms-global-action-label">Close</span></a>');
+    $closeButton.on("click", _.bind(this.hideIframe, this));
+    this.$iframeContainer = $('<div class="cedar-cms-admin-iframe-container"></div>');
+    this.$adminIframe = $('<iframe class="cedar-cms-admin-iframe" id="cedar-cms-admin-iframe">' +
+      '</iframe>');
+    this.$iframeContainer.append($closeButton);
+    this.$iframeContainer.append(this.$adminIframe);
+    $body.append(this.$iframeContainer);
+    this.$iframeContainer.hide();
+  }, this));
+};
+
+Cedar.Admin.prototype.hideIframe = function() {
+  $(this.$adminIframe).off('load');
+  this.$iframeContainer.hide();
 };
 
 Cedar.Admin.prototype.logOff = function(event) {
@@ -95,6 +144,7 @@ Cedar.Admin.prototype.getEditLink = function(options) {
   var output = Cedar.config.server + '/cmsadmin/';
   output += options.cedarType === 'ContentEntry' ? 'Edit' : 'Select';
   output += 'Data?cdr=1&t=' + options.cedarType + '&o=' + encodeURIComponent(options.cedarId);
+  output += '&referer=' + encodeURIComponent(window.location.href);
 
   return output;
 };
@@ -108,7 +158,7 @@ Cedar.Admin.prototype.getEditTools = function(options) {
   var iconClass = options.cedarType === 'ContentEntry' ? 'edit' : 'list';
 
   var block = '<span class="cedar-cms-edit-tools">';
-  block += '<a onclick="' + jsString + '" href="' + this.getEditLink(options) +
+  block += '<a href="' + this.getEditLink(options) +
            '" class="cedar-cms-edit-icon cedar-js-edit" >';
   block += '<i class="cedar-cms-icon cedar-cms-icon-right cedar-cms-icon-' + iconClass + '"></i></a>';
   block += '</span>';

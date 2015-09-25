@@ -3,6 +3,10 @@
 * @browsers	ALL
 **/
 
+.cedar-cms-logged-in {
+  padding-top: 45px;
+}
+
 .cedar-cms-editable {
   position: relative !important;
   display: inline-block !important;
@@ -117,8 +121,11 @@ div.cedar-cms-editable {
   position: absolute;
   top: 0;
   right: 0;
-  text-align: left !important;
-  z-index: 1000000;
+  width: 100%;
+  height: 45px;
+  text-align: right !important;
+  z-index: 99998;
+  background: #fff;
 }
 .cedar-cms-global-action {
   display: inline-block !important;
@@ -131,4 +138,25 @@ div.cedar-cms-editable {
 }
 .cedar-cms-global-action * {
   vertical-align: top;
+}
+
+/* Edit Iframe */
+.cedar-cms-admin-iframe {
+  width: 100%;
+  height: 99%;
+}
+
+.cedar-cms-admin-iframe-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000000;
+  width: 100%;
+  height: 400%;
+}
+
+.cedar-cms-admin-iframe-container .cedar-cms-global-action {
+  position: absolute;
+  top: 100%;
+  right: 0;
 }
