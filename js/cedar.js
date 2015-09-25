@@ -48,7 +48,8 @@ Cedar.Application = function(options) {
     allowUnsecured: false,
     objectNameFilter: '',
     liveMode: true,
-    initHTML: false
+    initHTML: false,
+    inlineEditing: false
   };
 
   this.options = $.extend({}, $.extend({}, defaults, window.Cedar.config), options);
@@ -65,6 +66,7 @@ Cedar.Application = function(options) {
   Cedar.config.objectNameFilter = this.options.objectNameFilter;
   Cedar.config.liveMode = this.options.liveMode;
   Cedar.config.initHTML = this.options.initHTML;
+  Cedar.config.inlineEditing = this.options.inlineEditing;
 
   if (Cedar.events === undefined) {
     Cedar.events = new Cedar.Events();
