@@ -118,7 +118,7 @@ div.cedar-cms-editable {
 
 /* Action Links */
 .cedar-cms-global-actions {
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
   width: 100%;
@@ -144,6 +144,7 @@ div.cedar-cms-editable {
 .cedar-cms-admin-iframe {
   width: 100%;
   height: 99%;
+  background: #fff;
 }
 
 .cedar-cms-admin-iframe-container {
@@ -153,6 +154,7 @@ div.cedar-cms-editable {
   z-index: 1000000;
   width: 100%;
   height: 400%;
+  background: #fff;
 }
 
 .cedar-cms-admin-iframe-container .cedar-cms-global-action {
