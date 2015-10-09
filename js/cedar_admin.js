@@ -49,14 +49,17 @@ Cedar.Admin.prototype.loadIframeSrc = function(event) {
     $(this.$adminIframe).on('load', _.bind(function(event) {
       window.location.reload(true);
     }, this));
-    var iframeContents = this.$adminIframe.contents();
-    var iframeForm = iframeContents.find('#editForm');
-    iframeContents.find('.cms-dashboard').hide();
-    iframeContents.find('#cmsToolbarPlaceholder').hide();
-    iframeForm.on('submit', _.bind(function(event) {
-      this.$iframeContainer.hide();
-    }, this));
-    iframeForm.find('.s-cancel-edit').on('click', _.bind(this.hideIframe, this));
+    try {
+      var iframeContents = this.$adminIframe.contents();
+      var iframeForm = iframeContents.find('#editForm');
+      iframeContents.find('.cms-dashboard').hide();
+      iframeContents.find('#cmsToolbarPlaceholder').hide();
+      iframeForm.on('submit', _.bind(function(event) {
+        this.$iframeContainer.hide();
+      }, this));
+      iframeForm.find('.s-cancel-edit').on('click', _.bind(this.hideIframe, this));
+    } catch (error) {
+    }
     this.$iframeContainer.show();
   }, this));
   this.$adminIframe.attr('src', event.currentTarget.href);
