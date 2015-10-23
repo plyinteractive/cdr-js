@@ -42,24 +42,22 @@ Cedar.Admin.prototype.observeDOM = function(selector, callback) {
   }
 };
 
+Cedar.Admin.prototype.listenToIframe = function() {
+  $(window).on("message", _.bind(function(event){
+    this[event.originalEvent.data]();
+  }, this));
+};
+
+Cedar.Admin.prototype.messageIframe = function() {
+  this.$adminIframe.get(0).contentWindow.postMessage('', Cedar.config.server);
+};
+
 Cedar.Admin.prototype.loadIframeSrc = function(event) {
   event.preventDefault();
   this.$adminIframe.on("load", _.bind(function() {
-    $(this.$adminIframe).off('load');
-    $(this.$adminIframe).on('load', _.bind(function(event) {
-      window.location.reload(true);
-    }, this));
-    try {
-      var iframeContents = this.$adminIframe.contents();
-      var iframeForm = iframeContents.find('#editForm');
-      iframeContents.find('.cms-dashboard').hide();
-      iframeContents.find('#cmsToolbarPlaceholder').hide();
-      iframeForm.on('submit', _.bind(function(event) {
-        this.$iframeContainer.hide();
-      }, this));
-      iframeForm.find('.s-cancel-edit').on('click', _.bind(this.hideIframe, this));
-    } catch (error) {
-    }
+    this.$adminIframe.off('load');
+    this.listenToIframe();
+    this.messageIframe();
     this.$iframeContainer.show();
   }, this));
   this.$adminIframe.attr('src', event.currentTarget.href);
@@ -125,8 +123,14 @@ Cedar.Admin.prototype.renderIframe = function() {
 };
 
 Cedar.Admin.prototype.hideIframe = function() {
-  $(this.$adminIframe).off('load');
   this.$iframeContainer.hide();
+};
+
+Cedar.Admin.prototype.hideIframeReload = function() {
+  this.$adminIframe.on('load', _.bind(function(event) {
+    window.location.reload(true);
+  }, this));
+  this.hideIframe();
 };
 
 Cedar.Admin.prototype.logOff = function(event) {
@@ -148,6 +152,10 @@ Cedar.Admin.prototype.getEditLink = function(options) {
   output += options.cedarType === 'ContentEntry' ? 'Edit' : 'Select';
   output += 'Data?cdr=1&t=' + options.cedarType + '&o=' + encodeURIComponent(options.cedarId);
   output += '&referer=' + encodeURIComponent(window.location.href);
+
+  if (Cedar.config.inlineEditing) {
+    output += '&iframeMode=';
+  }
 
   return output;
 };
