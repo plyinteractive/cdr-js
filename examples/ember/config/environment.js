@@ -5,6 +5,7 @@ module.exports = function(environment) {
     modulePrefix: 'ember-cdr',
     environment: environment,
     baseURL: '/',
+    apiURL: 'rho-api.staging.plyinc.com',
     locationType: 'auto',
     EmberENV: {
       FEATURES: {

@@ -28,8 +28,16 @@ gulp.task('sass', function () {
     }))
     .pipe(gulp.dest('dist/css'))
 });
+//sends latest build to example folders
 
 gulp.task('img', function () {
   gulp.src('lib/img/*')
     .pipe(gulp.dest('dist/img'))
+});
+
+gulp.task('populate', function() {
+  gulp.src('dist/**/*')
+  .pipe(gulp.dest('examples/ember/vendor'))
+  .pipe(gulp.dest('examples/static/vendor'))
+  .pipe(gulp.dest('examples/php/vendor'))
 });

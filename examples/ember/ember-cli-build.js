@@ -5,6 +5,28 @@ module.exports = function(defaults) {
   var app = new EmberApp(defaults, {
     // Add options here
   });
+  //@TODO can't seem to import files from outside ember parent directory, maybe @joshr can take a look. I want to avoid going through bower because that would defeat the purpose of having examples within the same file structure.
+
+  // app.import('../../dist/img/cedar-display-tools-sprite.png', {
+  //   destDir: 'img'
+  // })
+  // app.import('../../dist/css/cedar.min.css');
+  // app.import('../../dist/js/cedar.js');
+  // app.import('../../dist/js/cedar_admin.min.js');
+  // app.import('../../dist/js/cedar_handlebars.js');
+
+  app.import(app.bowerDirectory + '/underscore.inflection/lib/underscore.inflection.js');
+  app.import(app.bowerDirectory + '/underscore.string/dist/underscore.string.js');
+  app.import(app.bowerDirectory + '/lodash/lodash.min.js');
+
+  app.import('vendor/js/cedar.js');
+  app.import('vendor/js/cedar_admin.js');
+  app.import('vendor/js/cedar_handlebars.js');
+  app.import('vendor/css/cedar.js');
+  app.import('vendor/img/cedar-display-tools-sprite.png', {
+    destDir: 'img'
+  });
+
 
   // Use `app.import` to add additional libraries to the generated
   // output files.
