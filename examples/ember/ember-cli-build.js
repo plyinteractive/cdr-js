@@ -13,6 +13,7 @@ module.exports = function(defaults) {
   app.import('vendor/js/cedar.js');
   app.import('vendor/js/cedar_admin.js');
   app.import('vendor/js/cedar_handlebars.js');
+  app.import('vendor/js/cedar_iframe.js');
   app.import('vendor/css/cedar.css');
   app.import('/vendor/img/cedar-display-tools-sprite.png', {
     destDir: 'img'
