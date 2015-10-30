@@ -1,0 +1,74 @@
+.onoffswitch {
+  position: relative;
+  width: 61px;
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  vertical-align: middle;
+  flex: 0 0 60px;
+}
+
+.onoffswitch-checkbox {
+  display: none;
+}
+
+.onoffswitch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 22px;
+}
+
+.onoffswitch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+  &:before, &:after {
+    display: block;
+    float: left;
+    width: 50%;
+    height: 26px;
+    padding: 0;
+    line-height: 27px;
+    color: white;
+    box-sizing: border-box;
+  }
+  &:before {
+    content: "ON";
+    padding-left: 10px;
+    background-color: $gray;
+    color: $white;
+  }
+  &:after {
+    content: "OFF";
+    padding-right: 10px;
+    background-color: $gray;
+    color: $white;
+    text-align: right;
+  }
+}
+
+.onoffswitch-switch {
+  display: block;
+  width: 23px;
+  height: 23px;
+  margin: 1px 2px 1px 1px;
+  background: $white;
+  border-radius: 22px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 33px;
+  transition: all 0.3s ease-in 0s;
+  box-shadow: 0 1px 3px 0px;
+}
+
+.onoffswitch-checkbox:checked + .onoffswitch-label {
+  .onoffswitch-inner {
+    margin-left: 0;
+  }
+  .onoffswitch-switch {
+    right: 0;
+  }
+}

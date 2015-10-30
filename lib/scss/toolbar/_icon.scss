@@ -1,0 +1,7 @@
+.cdr-heading-icon {
+  font-size: 24px;
+  padding-right: 10px;
+  &.icon-database, &.icon-papers {
+    color: $lightgreen;
+  }
+}

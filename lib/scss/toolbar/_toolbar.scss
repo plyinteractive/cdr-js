@@ -1,0 +1,19 @@
+.cdr {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index: 999999;
+  box-shadow: 0 5px 5px -2px #aaa;
+  color: $gray;
+  font-family: $default-font;
+}
+
+.cdr-toolbar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 45px;
+  border-bottom: 1px solid $lightgray;
+}

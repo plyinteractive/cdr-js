@@ -1,0 +1,61 @@
+.cdr-iframe {
+  height: 0;
+  transition: height .3s ease-in-out;
+  position: relative;
+  &.js-expanded {
+    height: calc(85vh - 45px);
+    .cdr-iframe-container {
+      display: flex;
+      opacity: 1;
+      height: 100%;
+    }
+    .cdr-iframe-toggle {
+      background-color: #e4e1df;
+    }
+  }
+  .cdr-iframe-container {
+    height: 0;
+    overflow: hidden;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 1s, height .3s ease-in-out;
+    background: url('/assets/img/cedar-trees.jpg');
+    background-size: cover;
+  }
+}
+.cdr-iframe-container {
+  font-size: 36px;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  iframe {
+    height: 100%;
+    width: 100%;
+  }
+}
+.cdr-iframe-toggle {
+  position: absolute;
+  bottom: -23px;
+  right: 50%;
+  margin-right: -24px;
+  height: 24px;
+  padding: 0 12px;
+  text-transform: uppercase;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  box-shadow: 0 5px 5px -2px #aaa;
+  background-color: $white;
+  cursor: pointer;
+  transition: background-color .3s ease-in-out;
+  &:hover {
+    color: $lightgreen;
+  }
+  .js-hidden {
+    display: none;
+  }
+}
