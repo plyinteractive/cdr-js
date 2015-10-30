@@ -1,0 +1,1 @@
+/Users/andrews/Code/client-projects/cdr-js/examples/ember/tmp/tree_merger-tmp_dest_dir-oXEZtqAI.tmp/ember-cdr/instance-initializers/app-version.js

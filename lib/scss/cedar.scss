@@ -2,38 +2,21 @@
 * Styles particular to the CMS when in "edit-mode" while viewing a front-end page.
 * @browsers	ALL
 **/
+@import 'defaults';
+@import 'colors';
 
-.cedar-cms-logged-in {
-  padding-top: 45px;
-}
+@import 'inline-editor/inline';
 
-.cedar-cms-editable {
-  position: relative !important;
-  display: inline-block !important;
-  min-width: 22px !important;
-  min-height: 22px !important;
-  vertical-align: top;
-  font-size: inherit !important;
-  color: inherit !important;
-  background: inherit !important;
-  width: auto !important;
-  height: auto !important;
-  margin: 0 !important;
-}
-div.cedar-cms-editable {
-  width: 100% !important;
-}
-
-.cedar-cms-editable:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 1px dotted #F65126 !important;
-  box-sizing: border-box;
-}
+@import 'toolbar/button';
+@import 'toolbar/category';
+@import 'toolbar/icon';
+@import 'toolbar/iframe';
+@import 'toolbar/list';
+@import 'toolbar/list-item';
+@import 'toolbar/logo';
+@import 'toolbar/sections';
+@import 'toolbar/switch';
+@import 'toolbar/toolbar';
 
 .cedar-cms-edit-tools {
   font-family: Arial, sans-serif !important;

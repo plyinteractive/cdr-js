@@ -1,1 +1,95 @@
-if(_(Handlebars).isUndefined()&&!_(Ember).isUndefined())var Handlebars=Ember.Handlebars;Handlebars.registerHelper("cedar",function(e){"use strict";var n=function(e){var n=0;if(0==e.length)return n;for(var t=0;t<e.length;t++){var r=e.charCodeAt(t);n=(n<<5)-n+r,n&=n}return n},t=function(e){var n={"&amp;":"&","&lt;":"<","&gt;":">","&quot;":'"',"&#39;":"'","&#x27;":"'"};return e.replace(/&#?\w+;/g,function(e){return n[e]})},r=function(){return"function"==typeof e.fn?!0:!1},a=function(e,n){var t=document.getElementById(e);if(null!==t){var r=t.parentNode,a=document.createElement("div");a.innerHTML=n;for(var d=a.childNodes,i=d.length,o=0;i>o;o++)r.insertBefore(d[0],t);r.removeChild(t)}},d=e.hash.tagName||"span";r()&&(d=e.hash.tagName||"div");var i=document.createElement(d);i.id="cedar-js-"+n(e.hash.id);var o="",s=e.hash.type||"ContentEntry",u=r()?"ContentObject":"ContentEntry";return Cedar.store.get(s,{id:e.hash.id}).then(function(n){var d=new window.Cedar[u]({cedarId:e.hash.id,cedarType:s,defaultContent:e.hash["default"]});d.setContent(n),r()?(Cedar.admin.isEditMode()&&(o+=d.getEditOpen()),o+=t(e.fn(d.toJSON())),Cedar.admin.isEditMode()&&(o+=d.getEditClose())):o=d.toString(),a(i.id,o)}),new Handlebars.SafeString(o||i.outerHTML)});
+if (_(Handlebars).isUndefined()) {
+  if (!_(Ember).isUndefined()) {
+    var Handlebars = Ember.Handlebars;
+  }
+}
+
+Handlebars.registerHelper('cedar', function(options) {
+  "use strict";
+
+  var hashCode = function(string) {
+    var hash = 0;
+    if (string.length == 0) return hash;
+    for (var i = 0; i < string.length; i++) {
+      var character = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + character;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+  };
+
+  var unescapeHtml = function(string) {
+    var MAP = {
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&#x27;': "'"
+    };
+
+    return string.replace(/&#?\w+;/g, function(c) {
+      return MAP[c];
+    });
+  };
+
+  var blockHelperStyle = function() {
+    if (typeof options.fn === "function") {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  var replaceElement = function(id, content) {
+    // If rendered element exists than insert the content
+    var renderedEl = document.getElementById(id);
+    if (renderedEl !== null) {
+      var parentEl = renderedEl.parentNode;
+      var tempEl = document.createElement("div");
+      tempEl.innerHTML = content;
+
+      // Insert content node by node and then remove the existing element
+      var nodeList = tempEl.childNodes;
+      var nodeListLength = nodeList.length;
+      for(var i = 0; i < nodeListLength; i++) {
+        parentEl.insertBefore(nodeList[0], renderedEl);
+      }
+      parentEl.removeChild(renderedEl);
+    }
+  }
+
+  var tagName = options.hash.tagName || "span";
+  if (blockHelperStyle()) {
+    tagName = options.hash.tagName || "div";
+  }
+
+  var outputEl = document.createElement(tagName);
+  outputEl.id = "cedar-js-" + hashCode(options.hash.id);
+
+  var output = '';
+
+  var type = options.hash.type || 'ContentEntry';
+  var cedarClass = blockHelperStyle() ? 'ContentObject' : 'ContentEntry'
+
+  Cedar.store.get(type, {id: options.hash.id}).then(function(data){
+    var cedarObject = new window.Cedar[cedarClass]({ cedarId: options.hash.id, cedarType: type, defaultContent: options.hash.default });
+    cedarObject.setContent(data);
+
+    if (blockHelperStyle()) {
+      if (Cedar.admin.isEditMode()) {
+        output += cedarObject.getEditOpen();
+      }
+      output += unescapeHtml(options.fn(cedarObject.toJSON()));
+      if (Cedar.admin.isEditMode()) {
+        output += cedarObject.getEditClose();
+      }
+    } else {
+      output = cedarObject.toString();
+    }
+
+    replaceElement(outputEl.id, output);
+  });
+
+  return new Handlebars.SafeString(output || outputEl.outerHTML);
+});

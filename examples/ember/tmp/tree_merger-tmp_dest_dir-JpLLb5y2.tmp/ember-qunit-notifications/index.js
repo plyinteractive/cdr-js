@@ -1,0 +1,1 @@
+/Users/andrews/Code/client-projects/cdr-js/examples/ember-cdr/tmp/funnel-output_path-5nYCuib2.tmp/ember-qunit-notifications/index.js
