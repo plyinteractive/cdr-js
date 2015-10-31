@@ -1,0 +1,1 @@
+/Users/andrews/Code/client-projects/cdr-js/examples/ember-cdr/app/app.js

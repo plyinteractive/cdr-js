@@ -1,0 +1,23 @@
+.cdr-category-list {
+  height: 0;
+  overflow: hidden;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 45px;
+  left: 0;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+  box-sizing: border-box;
+  padding-left: 25px;
+  padding-right: 10px;
+  background-color: $white;
+  width: 200px;
+  transition: height 0.3s ease-in 0s;
+}
+
+.cdr-child-list {
+  text-transform: lowercase;
+  height: 0;
+}

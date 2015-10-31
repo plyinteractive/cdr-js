@@ -1,0 +1,48 @@
+.cdr-list-item {
+  display: flex;
+  align-items: center;
+  position: relative;
+  a {
+    text-decoration: none;
+    display: flex;
+    align-items: flex-start;
+    color: $gray;
+    &:hover {
+      color: $lightgreen;
+    }
+    .icon-circle2 {
+      font-size: 6px;
+      padding-right: 5px;
+      padding-top: 3px;
+      color: $gogreen;
+    }
+  }
+  &.inactive {
+    a .icon-circle2 {
+      color: $spark;
+    }
+  }
+  &.js-expanded {
+    flex-direction: column;
+    align-items: flex-start;
+    &:before {
+      transform:rotate(90deg);
+    }
+    .cdr-child-list {
+      height: auto;
+      padding: 5px 0 0 15px;
+    }
+  }
+  &.js-expandable {
+    &:before {
+      content: "\e803";
+      font-family: 'icomoon';
+      position: absolute;
+      left: -12px;
+      top: 5px;
+      font-size: 7px;
+      color: $lightgray;
+      transition: transform .3s;
+    }
+  }
+}

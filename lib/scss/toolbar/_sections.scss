@@ -1,0 +1,39 @@
+.cdr-toolbar-section {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+.cdr-categories {
+  @extend .cdr-toolbar-section;
+  flex: 1 1 auto;
+}
+
+.cdr-authentication {
+  @extend .cdr-toolbar-section;
+  border-left: 1px solid $lightgray;
+}
+
+.cdr-manage {
+  @extend .cdr-toolbar-section;
+  padding-right: 25px;
+  padding-left: 20px;
+}
+
+.cdr-toggle {
+  @extend .cdr-toolbar-section;
+  padding: 0 20px;
+  .cdr-heading {
+    padding-right: 10px;
+  }
+}
+
+.cdr-heading-container {
+  display: flex;
+  align-items: center;
+}
+
+.cdr-authentication-heading-container {
+  @extend .cdr-heading-container;
+  padding: 0 25px;
+}

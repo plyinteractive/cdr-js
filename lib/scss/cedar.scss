@@ -1,0 +1,19 @@
+/**
+* Styles particular to the CMS when in "edit-mode" while viewing a front-end page.
+* @browsers	ALL
+**/
+@import 'defaults';
+@import 'colors';
+
+@import 'inline-editor/inline';
+
+@import 'toolbar/button';
+@import 'toolbar/category';
+@import 'toolbar/icon';
+@import 'toolbar/iframe';
+@import 'toolbar/list';
+@import 'toolbar/list-item';
+@import 'toolbar/logo';
+@import 'toolbar/sections';
+@import 'toolbar/switch';
+@import 'toolbar/toolbar';

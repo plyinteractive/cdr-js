@@ -1,0 +1,55 @@
+.cdr-category {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 20px;
+  margin-bottom: -1px;
+  &:first-of-type {
+    margin-left: -1px;
+  }
+  &.active {
+    background-color: #fff;
+    &:after, &:before {
+      background-color: $lightgray;
+    }
+    .cdr-category-list {
+      height: auto;
+      border-color: #ddd6d4 #ddd6d4 #fff;
+      border-right: 1px solid $lightgray;
+      border-bottom: 1px solid $lightgray;
+      border-left: 1px solid $lightgray;
+      padding-top: 15px;
+      padding-bottom: 12px;
+      li {
+        padding: 3px 0;
+        &:last-of-type {
+          padding-bottom: 0;
+        }
+      }
+    }
+  }
+  &:after {
+    content: "";
+    height: 100%;
+    width: 1px;
+    background-color: transparent;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  &:before {
+    content: "";
+    height: 100%;
+    width: 1px;
+    background-color: transparent;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+.cdr-heading-container {
+  cursor: pointer;
+}

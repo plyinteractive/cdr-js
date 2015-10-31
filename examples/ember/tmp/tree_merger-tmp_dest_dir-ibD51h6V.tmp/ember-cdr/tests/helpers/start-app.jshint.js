@@ -1,0 +1,1 @@
+/Users/andrews/Code/client-projects/cdr-js/examples/ember-cdr/tmp/funnel-output_path-Il2hMRA9.tmp/ember-cdr/tests/helpers/start-app.jshint.js
