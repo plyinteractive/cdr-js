@@ -1,1 +1,0 @@
-/Users/andrews/Code/client-projects/cdr-js/examples/ember/tmp/tree_merger-tmp_dest_dir-hIbzKp8H.tmp/controllers/object.js

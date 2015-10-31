@@ -289,7 +289,7 @@ catch(err) {
 if (runningTests) {
   require("ember-cdr/tests/test-helper");
 } else {
-  require("ember-cdr/app")["default"].create({"name":"ember-cdr","version":"0.0.0+c2ebe6e8"});
+  require("ember-cdr/app")["default"].create({"name":"ember-cdr","version":"0.0.0+7606cd6e"});
 }
 
 /* jshint ignore:end */

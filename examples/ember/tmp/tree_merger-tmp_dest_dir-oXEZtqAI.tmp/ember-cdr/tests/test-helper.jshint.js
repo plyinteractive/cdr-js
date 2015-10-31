@@ -1,1 +1,0 @@
-/Users/andrews/Code/client-projects/cdr-js/examples/ember/tmp/jshinter-tmp_dest_dir-ki5MA9qf.tmp/test-helper.jshint.js

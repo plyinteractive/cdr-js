@@ -1,1 +1,0 @@
-/Users/andrews/Code/client-projects/cdr-js/examples/ember/tmp/funnel-output_path-thAVIMzi.tmp/ember-cdr/tests/helpers/resolver.jshint.js
