@@ -38,12 +38,10 @@ gulp.task('img', function () {
 gulp.task('populate', function() {
   gulp.src('dist/**/*')
   .pipe(gulp.dest('examples/ember/vendor'))
-  .pipe(gulp.dest('examples/static/vendor'))
+  .pipe(gulp.dest('examples/html/vendor'))
   .pipe(gulp.dest('examples/php/vendor'))
 });
 
 gulp.task('watch', function() {
-  gulp.watch('lib/js/*.js', ['build-js']);
-  gulp.watch('lib/scss/**/*.scss', ['sass']);
-  gulp.watch('img/*', ['img']);
+  gulp.watch('lib/**/*' , ['default', 'populate']);
 });
