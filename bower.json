@@ -22,7 +22,8 @@
     "package.json",
     "README.md",
     "node_modules",
-    "bower_components"
+    "bower_components",
+    "examples"
   ],
   "dependencies": {
     "jquery": "~2.1.3",
