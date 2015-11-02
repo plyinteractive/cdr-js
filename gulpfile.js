@@ -5,7 +5,7 @@ var gulp = require('gulp')
           ,uglify  = require('gulp-uglify')
           ,rename = require('gulp-rename');
 
-gulp.task('default', ['build-js', 'sass', 'img']);
+gulp.task('default', ['build-js', 'sass', 'img', 'populate']);
 
 gulp.task('build-js', function() {
   return gulp.src('lib/js/*.js')
@@ -43,5 +43,5 @@ gulp.task('populate', function() {
 });
 
 gulp.task('watch', function() {
-  gulp.watch('lib/**/*' , ['default', 'populate']);
+  gulp.watch('lib/**/*' , ['default']);
 });
