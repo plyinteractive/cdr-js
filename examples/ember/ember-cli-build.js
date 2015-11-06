@@ -9,11 +9,14 @@ module.exports = function(defaults) {
   app.import(app.bowerDirectory + '/underscore.inflection/lib/underscore.inflection.js');
   app.import(app.bowerDirectory + '/underscore.string/dist/underscore.string.js');
   app.import(app.bowerDirectory + '/lodash/lodash.min.js');
+  app.import(app.bowerDirectory + '/handlebars/handlebars.runtime.min.js');
 
+  app.import('vendor/js/cedar_templates.js');
   app.import('vendor/js/cedar.js');
   app.import('vendor/js/cedar_admin.js');
   app.import('vendor/js/cedar_handlebars.js');
   app.import('vendor/js/cedar_iframe.js');
+
   app.import('vendor/css/cedar.css');
   app.import('/vendor/img/cedar-display-tools-sprite.png', {
     destDir: 'img'

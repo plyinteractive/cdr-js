@@ -1,6 +1,10 @@
 /**
  * Global object for settings and storage
  */
+
+ console.log(Cedar.templates.toolbar());
+ // outputs '<div class="cdr-toolbar"></div>'
+
 window.Cedar = window.Cedar || {};
 window.Cedar = $.extend({}, window.Cedar, {
   initialized: false,
@@ -8,6 +12,7 @@ window.Cedar = $.extend({}, window.Cedar, {
   admin: null
 });
 window.Cedar.config = window.Cedar.config || {};
+
 
 /**
 * Cedar.Init

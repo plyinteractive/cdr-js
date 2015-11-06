@@ -3,9 +3,13 @@ var gulp = require('gulp')
           ,autoprefixer = require('gulp-autoprefixer')
           ,minifyCSS = require('gulp-minify-css')
           ,uglify  = require('gulp-uglify')
-          ,rename = require('gulp-rename');
+          ,rename = require('gulp-rename')
+          ,handlebars = require('gulp-handlebars')
+          ,wrap = require('gulp-wrap')
+          ,declare = require('gulp-declare')
+          ,concat = require('gulp-concat');
 
-gulp.task('default', ['build-js', 'sass', 'img', 'populate']);
+gulp.task('default', ['build-js', 'build-templates', 'sass', 'img', 'populate']);
 
 gulp.task('build-js', function() {
   return gulp.src('lib/js/*.js')
@@ -15,6 +19,20 @@ gulp.task('build-js', function() {
      }))
     .pipe(uglify())
     .pipe(gulp.dest('dist/js'));
+});
+
+gulp.task('build-templates', function() {
+  gulp.src('lib/js/templates/**/*.hbs')
+    .pipe(handlebars({
+      handlebars: require('handlebars')
+    }))
+    .pipe(wrap('Handlebars.template(<%= contents %>)'))
+    .pipe(declare({
+      namespace: 'Cedar.templates',
+      noRedeclare: true
+    }))
+    .pipe(concat('cedar_templates.js'))
+    .pipe(gulp.dest('dist/js/'));
 });
 
 gulp.task('sass', function () {
