@@ -5,7 +5,7 @@ module.exports = function(defaults) {
   var app = new EmberApp(defaults, {
     // Add options here
   });
-
+  app.import(app.bowerDirectory + '/lodash/lodash.min.js');
   app.import(app.bowerDirectory + '/underscore.inflection/lib/underscore.inflection.js');
   app.import(app.bowerDirectory + '/underscore.string/dist/underscore.string.js');
   app.import(app.bowerDirectory + '/lodash/lodash.min.js');
